@@ -10,7 +10,6 @@
 
 @interface QuantcastMeasurementPlugin : CDVPlugin
 
-- (void)quickStartSession:(CDVInvokedUrlCommand*)command;
 - (void)beginMeasurementSession:(CDVInvokedUrlCommand*)command;
 - (void)endMeasurementSession:(CDVInvokedUrlCommand*)command;
 - (void)pauseMeasurementSession:(CDVInvokedUrlCommand*)command;

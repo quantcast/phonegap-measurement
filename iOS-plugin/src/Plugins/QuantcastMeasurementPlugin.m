@@ -12,9 +12,7 @@
 @interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>{
     NSString* _optOutDisplayCallbackID;  //we have to hold this for the delegate callback
     
-    BOOL _didQuickStart;
-    id _quickBackgroundNotif;
-    id _quickForegroundNotif;
+
     id _quickTerminateNotif;
 }
 @end
@@ -24,44 +22,19 @@
 
 -(void)dealloc{
     [super dealloc];
-    [[NSNotificationCenter defaultCenter] removeObserver:_quickBackgroundNotif];
-    [[NSNotificationCenter defaultCenter] removeObserver:_quickForegroundNotif];
     [[NSNotificationCenter defaultCenter] removeObserver:_quickTerminateNotif];
     [_optOutDisplayCallbackID release];
 }
 
-- (void)quickStartSession:(CDVInvokedUrlCommand*)command{
-    id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:2]];
-    
-    //setup notifications
-    _quickBackgroundNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidEnterBackgroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        
-        [[QuantcastMeasurement sharedInstance] pauseSessionWithLabels:labels];
-    }];
-    
-    _quickForegroundNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillEnterForegroundNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        
-        [[QuantcastMeasurement sharedInstance] resumeSessionWithLabels:labels];
-    }];
-    
-    _quickTerminateNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillTerminateNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        
-        [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:labels];
-    }];
-    
-    //call begin
-    [self beginMeasurementSession:command];
-    _didQuickStart = YES;
-}
-
 
 - (void)beginMeasurementSession:(CDVInvokedUrlCommand*)command{
-    if(_didQuickStart){
-        NSLog(@"QC Phonegap Measurement: ERROR - quickStartMeasurementSession already called.  You do not need to to explicitly call beginMeasurementSession.");
-        return;
-    }
+
+    //always setup terminate notifications since phonegap doesnt have one
+    _quickTerminateNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillTerminateNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        
+        [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:nil];
+    }];
     
-    _didQuickStart = NO;
     NSString *callbackId = command.callbackId;
     
     NSString* apiKey = [self argumentAsString:[command.arguments objectAtIndex:0]];
@@ -78,31 +51,16 @@
 }
 
 - (void)endMeasurementSession:(CDVInvokedUrlCommand*)command{
-    if(_didQuickStart){
-        NSLog(@"QC Phonegap Measurement: ERROR - quickStartMeasurementSession was used.  You do not need to explicitly call endMeasurementSession.");
-        return;
-    }
-    
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0]];
     [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:labels];
 }
 
-- (void)pauseMeasurementSession:(CDVInvokedUrlCommand*)command{
-    if(_didQuickStart){
-        NSLog(@"QC Phonegap Measurement: ERROR - quickStartMeasurementSession was used.  You do not need to explicitly call pauseMeasurementSession.");
-        return;
-    }
-    
+- (void)pauseMeasurementSession:(CDVInvokedUrlCommand*)command{    
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0]];
     [[QuantcastMeasurement sharedInstance] pauseSessionWithLabels:labels];
 }
 
 - (void)resumeMeasurementSession:(CDVInvokedUrlCommand*)command{
-    if(_didQuickStart){
-        NSLog(@"QC Phonegap Measurement: ERROR - quickStartMeasurementSession was used.  You do not need to explicitly call resumeMeasurementSession.");
-        return;
-    }
-    
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0]];
     [[QuantcastMeasurement sharedInstance] resumeSessionWithLabels:labels];
 }
