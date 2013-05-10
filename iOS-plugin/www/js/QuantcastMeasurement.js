@@ -10,6 +10,7 @@
  *
  */
 
+var _setupLabels;
 
 /// QuantcastMeasurement for PhoneGap requires PhoneGap version 2.1 and greater
 var QuantcastMeasurement = {
@@ -21,9 +22,10 @@ var QuantcastMeasurement = {
      @param {String} userIdentifier    A user identifier string that is meanigful to the app publisher. There is no requirement on format of this other than that it is a meaningful user identifier to you. Quantcast will immediately one-way hash this value, thus not recording it in its raw form. You should pass nil to indicate that there is no user identifier available, either at the start of the session or at all.
      @param {String or Array} labels   Object containing one or more String objects, each of which are a distinct label to be applied to this event. A label is any arbitrary string that you want to be ascociated with this event, and will create a second dimension in Quantcast Measurement reporting. Nominally, this is a "user class" indicator. For example, you might use one of two labels in your app: one for user who ave not purchased an app upgrade, and one for users who have purchased an upgrade.
      */
-    quickStartMeasurementSession: function (apiKey, userIdentifier, labels ) {
+    setUpQuantcastMeasurement: function (apiKey, userIdentifier, labels ) {
         var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; // old to new fallbacks
         
+        _setupLabels = labels;
         //set up pause resume events
         document.addEventListener('pause', QuantcastMeasurement.onPause, false);
         document.addEventListener('resume', QuantcastMeasurement.onResume, false);
@@ -35,11 +37,11 @@ var QuantcastMeasurement = {
     },
     
     onPause: function() {
-        QuantcastMeasurement.pauseMeasurementSession(null);
+        QuantcastMeasurement.pauseMeasurementSession(_setupLabels);
     },
         
     onResume: function() {
-        QuantcastMeasurement.resumeMeasurementSession(null);
+        QuantcastMeasurement.resumeMeasurementSession(_setupLabels);
     },
     
     
@@ -57,19 +59,6 @@ var QuantcastMeasurement = {
                                "QuantcastMeasurementPlugin",
                                "beginMeasurementSession",
                                [apiKey, userIdentifier, labels]);
-    },
-    
-    /**
-     Returns the Quantcast Measurement SDK to the state it was in prior the the beginMeasurementSession:withLabels: call. In most cases this method will not be used since PhoneGap does not have an event fired when the app is terminated this.
-     @param {String or Array} labels   Object containing one or more String objects, each of which are a distinct label to be applied to this event. A label is any arbitrary string that you want to be ascociated with this event, and will create a second dimension in Quantcast Measurement reporting. Nominally, this is a "user class" indicator. For example, you might use one of two labels in your app: one for user who ave not purchased an app upgrade, and one for users who have purchased an upgrade.
-     */
-    endMeasurementSession: function (labels) {
-        var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
-        
-        return cordovaRef.exec( null, null,
-                               "QuantcastMeasurementPlugin",
-                               "endMeasurementSession",
-                               [labels]);
     },
     
     /**

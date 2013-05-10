@@ -29,17 +29,19 @@
 
 - (void)beginMeasurementSession:(CDVInvokedUrlCommand*)command{
 
-    //always setup terminate notifications since phonegap doesnt have one
-    _quickTerminateNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillTerminateNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        
-        [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:nil];
-    }];
-    
     NSString *callbackId = command.callbackId;
     
     NSString* apiKey = [self argumentAsString:[command.arguments objectAtIndex:0]];
     NSString* userId = [self argumentAsString:[command.arguments objectAtIndex:1]];
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:2]];
+    
+    //always setup terminate notifications since phonegap doesnt have one
+    _quickTerminateNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillTerminateNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        
+        [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:labels];
+    }];
+    
+
     
     NSString* hash = [[QuantcastMeasurement sharedInstance] beginMeasurementSessionWithAPIKey:apiKey userIdentifier:userId labels:labels];
     
