@@ -1,29 +1,46 @@
-//
-//  QuantcastMeasurementPlugin.m
-//  PhoneGapMeasurement
-//
-//  Created by Kevin Smith on 4/9/13.
-//
-//
+/*
+ * Copyright 2013 Quantcast Corp.
+ *
+ * This software is licensed under the Quantcast Mobile App Measurement Terms of Service
+ * https://www.quantcast.com/learning-center/quantcast-terms/mobile-app-measurement-tos
+ * (the “License”). You may not use this file unless (1) you sign up for an account at
+ * https://www.quantcast.com and click your agreement to the License and (2) are in
+ * compliance with the License. See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ */
+
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+#ifndef __has_extension
+#define __has_extension __has_feature // Compatibility with pre-3.0 compilers.
+#endif
+
+#if __has_feature(objc_arc) && __clang_major__ >= 3
+#error "Quantcast Measurement is not designed to be used with ARC. Please add '-fno-objc-arc' to this file's compiler flags"
+#endif // __has_feature(objc_arc)
 
 #import "QuantcastMeasurementPlugin.h"
 #import "QuantcastMeasurement.h"
 
-@interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>{
-    NSString* _optOutDisplayCallbackID;  //we have to hold this for the delegate callback
-    
+@interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>
 
-    id _quickTerminateNotif;
-}
+@property (nonatomic, copy) NSString* optOutDisplayCallbackID; //we have to hold this for the delegate callback
+@property (nonatomic, retain) id<NSObject> labels;
+
 @end
 
 
 @implementation QuantcastMeasurementPlugin
 
+@synthesize optOutDisplayCallbackID=_optOutDisplayCallbackID, labels=_labels;
+
 -(void)dealloc{
-    [super dealloc];
-    [[NSNotificationCenter defaultCenter] removeObserver:_quickTerminateNotif];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [_optOutDisplayCallbackID release];
+    [_labels release];
+    [super dealloc];
 }
 
 
@@ -33,23 +50,22 @@
     
     NSString* apiKey = [self argumentAsString:[command.arguments objectAtIndex:0]];
     NSString* userId = [self argumentAsString:[command.arguments objectAtIndex:1]];
-    id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:2]];
+    self.labels = [self argumentAsLabel:[command.arguments objectAtIndex:2]];
     
     //always setup terminate notifications since phonegap doesnt have one
-    _quickTerminateNotif = [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationWillTerminateNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        
-        [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:labels];
-    }];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(terminateNotification) name:UIApplicationWillTerminateNotification object:nil];
     
-
-    
-    NSString* hash = [[QuantcastMeasurement sharedInstance] beginMeasurementSessionWithAPIKey:apiKey userIdentifier:userId labels:labels];
+    NSString* hash = [[QuantcastMeasurement sharedInstance] beginMeasurementSessionWithAPIKey:apiKey userIdentifier:userId labels:self.labels];
     
     if(callbackId){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:hash];
         [self writeJavascript:[result toSuccessCallbackString:callbackId]];
     }
     
+}
+
+-(void)terminateNotification:(NSNotification*)notif{
+    [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:self.labels];
 }
 
 - (void)endMeasurementSession:(CDVInvokedUrlCommand*)command{
@@ -97,8 +113,7 @@
 
 - (void)displayUserPrivacyDialog:(CDVInvokedUrlCommand*)command{
     if(command.callbackId){
-        [_optOutDisplayCallbackID release];
-        _optOutDisplayCallbackID = [command.callbackId copy];
+        self.optOutDisplayCallbackID = command.callbackId;
     }
     
     [[QuantcastMeasurement sharedInstance] displayUserPrivacyDialogOver:[UIApplication sharedApplication].keyWindow.rootViewController withDelegate:self];
@@ -117,7 +132,7 @@
 
 
 -(void)quantcastOptOutStatusDidChange:(BOOL)inOptOutStatus{
-    if(_optOutDisplayCallbackID){
+    if(self.optOutDisplayCallbackID){
         //launch this on main thread Dispatch doesnt seem to work for some reason which is strange but oh well
         [self performSelectorOnMainThread:@selector(notifyOptOut:) withObject:[NSNumber numberWithBool:inOptOutStatus] waitUntilDone:NO];
     }
@@ -125,9 +140,8 @@
 
 -(void)notifyOptOut:(NSNumber*)optChange{
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[optChange boolValue]];
-    [self writeJavascript:[result toSuccessCallbackString:_optOutDisplayCallbackID]];
-    [_optOutDisplayCallbackID release];
-    _optOutDisplayCallbackID = nil;
+    [self writeJavascript:[result toSuccessCallbackString:self.optOutDisplayCallbackID]];
+    self.optOutDisplayCallbackID = nil;
 }
 
 
