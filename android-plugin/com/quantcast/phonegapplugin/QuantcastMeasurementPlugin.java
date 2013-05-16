@@ -12,7 +12,6 @@ public class QuantcastMeasurementPlugin extends CordovaPlugin{
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        System.out.println("EXECUTE " + action);
         if (action.equals("beginMeasurementSession")) {
             String apiKey = args.getString(0);
             String userId = args.getString(1);
