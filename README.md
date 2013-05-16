@@ -1,89 +1,115 @@
-Quantcast PhoneGap (Cordova) Plug-in
+Quantcast Measure for PhoneGap (Cordova) SDK
 ==========================
 
-This plug-in lets you send QuantcastMeasurement calls from your PhoneGap project using either iOS or Android.
+Thank you for downloading the Quantcast PhoneGap SDK! This SDK lets you measure your PhoneGap app on either iOS or Android using Quantcast Measure for Mobile Apps. This implementation guide provides steps for integrating the SDK, so you can take advantage of valuable, actionable insights:
+
+* **Traffic Stats & Return Usage** - see your audience visitation trends
+* **Combined Web / App Audiences** - understand your aggregate audience across all screens by taking a few additional steps outlined in this guide.
+* **Labels** – segment your traffic by customizing views within your app.
+
+If you have any implementation questions, please email mobilesupport@quantcast.com. We're here to help.
+
 
 For help creating a PhoneGap project, see [PhoneGap Documentation](http://docs.phonegap.com/en/2.5.0/guide_getting-started_index.md.html#Getting%20Started%20Guides)
 
-Add the Plug-in to a PhoneGap Project
+Integrating Quantcast Measure for PhoneGap
 -------------------------------------
 
--Determine which platform you need and copy the files found in the src/ directory into your projects source code.  (For iOS be sure to then add the files to your project in XCode).
+### Project Setup ###
+To integrate Quantcast Measure into your PhoneGap project, you will to add both the Quantcast Measure PhoneGap plugin and the appropriate native Quantcast Measure for Mobiles Apps SDK to your project.
 
--Copy QuantcastMeasurement.js to the www/js folder in your PhoneGap project.
+Begin by cloning the Quantcast PhoneGap SDK's git repository. Open the Terminal application in your Mac and issue the following commands:
 
--In config.xml, add 
+``` bash
+git clone https://github.com/quantcast/phonegap-measurement.git ./quantcast-phonegap-sdk
 ```
-<plugin name="QuantcastMeasurementPlugin" value="QuantcastMeasurementPlugin" />" 
-```
-under the plugins tag.
 
--Include the platform specific Quantcast SDK to the project. 
-The iOS SDK can be found [here](https://github.com/quantcast/ios-measurement)
-The Android SDK can be found [here](https://github.com/quantcast/android-measurement)
+Once you have downloaded the Quantcast PhoneGap SDK's code, perform the following steps:
+
+1. Determine which platform, iOS or Android, you need and copy the files found in the appropiate directory with the Quantcast Measure for Phonegap SDKinto your projects "Plugins" directory, then add the source code to the project.
+    * **iOS** projects will need to add the files found under the `iOS-plugin` folder in the Quantcast Measure for Phonegap SDK
+    * **Android** projects will need to add the files found the `android-plugin` folder in the Quantcast Measure for Phonegap SDK
+
+2. Copy QuantcastMeasurement.js to the www/js folder in your PhoneGap project.
+
+3. In config.xml, add 
+    ```xml
+    <plugin name="QuantcastMeasurementPlugin" value="QuantcastMeasurementPlugin" />" 
+    ```
+    under the plugins tag.
+
+4. Include the platform specific Quantcast Measure SDK to your project. 
+    * The iOS SDK can be found [here](https://github.com/quantcast/ios-measurement).
+    * The Android SDK can be found [here](https://github.com/quantcast/android-measurement).
+
 See [Quantcast Measure for Mobile](https://www.quantcast.com/measurement/quantcast-measure-for-mobile-apps/) for more information on registering your app with Quantcast.
 
 
-QuickStart Integration
-----------------------
-Quickstart can be used for simpler implementations of the Quantcast SDK.  Projects that use constant or no [Event Labels](#event-labels) will benefit the most.   This method automatically sets up the pause/resume/end methods for you so this will be the only call you need to make and perhaps optional [Tracking App Events](#tracking-app-events).  
+### Required Code Integration ###
+You have an option to use either the [Consolidated Setup](#consolidated-setup-integration) or the [Detailed Setup](#detailed-code-untegration) when performing the required code integration to set up Quantcast Measure in your PhoneGap project.
 
-1) In the 'deviceready' event listener usually found in the index.js file, we can begin the measurement session by calling the following:
+#### Consolidated Setup Integration ####
 
-```javascript
-QuantcastMeasurement.quickStartMeasurementSession("<*Insert your API Key Here*>", userIdentifierStrOrNull, labelsOrNull );
-```
+The consolidated method can be used for simpler implementations of the Quantcast SDK.  Projects that use constant or no [Event Labels](#event-labels) will benefit the most.   This method automatically sets up the pause/resume/end methods for you so at a minimum this will be the only call you need to make. You are still free to use the optional features of Quantcast Measure, such as[Tracking App Events](#tracking-app-events).  
 
-Replace "<*Insert your API Key Here*>" with your Quantcast API Key, which can be generated in your Quantcast account homepage on the Quantcast website. The API Key is used as the basic reporting entity for Quantcast Measure. The same API Key can be used across multiple apps (i.e. AppName Free / AppName Paid) and/or app platforms (i.e. iOS / Android). For all apps under each unique API Key, Quantcast will report the aggregate audience among them all, and also identify/report on the individual app versions.
+1. In the 'deviceready' event listener usually found in the index.js file, we can begin the measurement session by calling the following:
 
-The userIdentifierStrOrNull parameter is a string that uniquely identifies an individual user, such as an account login. Passing this information allows Quantcast to provide reports on your combined audience across all your properties: online, mobile web and mobile app. This parameter may be null if your app does not have a user identifier available at the time your app launches. If the user identifier is not known at the time the 'deviceready' event is called, the user identifier can be recorded at a later time. Please see the [Combined Web/App Audiences](#combined-webapp-audiences) section for more information.
+    ```javascript
+    QuantcastMeasurement.setUpQuantcastMeasurement("<*Insert your API Key Here*>", userIdentifierStrOrNull, labelsOrNull );
+    ```
 
-The last parameter may be null and is discussed in more detail in the [Event Labels](#event-labels) section under Optional Code Integrations.
+    Replace "<*Insert your API Key Here*>" with your Quantcast API Key, which can be generated in your Quantcast account homepage on the Quantcast website. The API Key is used as the basic reporting entity for Quantcast Measure. The same API Key can be used across multiple apps (i.e. AppName Free / AppName Paid) and/or app platforms (i.e. iOS / Android). For all apps under each unique API Key, Quantcast will report the aggregate audience among them all, and also identify/report on the individual app versions.
 
+    The userIdentifierStrOrNull parameter is a string that uniquely identifies an individual user, such as an account login. Passing this information allows Quantcast to provide reports on your combined audience across all your properties: online, mobile web and mobile app. This parameter may be null if your app does not have a user identifier available at the time your app launches. If the user identifier is not known at the time the 'deviceready' event is called, the user identifier can be recorded at a later time. Please see the [Combined Web/App Audiences](#combined-webapp-audiences) section for more information.
 
-
-Detailed Code Integration
--------------------------
-If you need more control over pause and resume events such as setting specific labels, then you will have to a couple more simple steps.
-
-1) In the 'deviceready' event listener usually found in the index.js file, we can begin the measurement session by calling the following:
-
-```javascript
-      QuantcastMeasurement.beginMeasurementSession( callbackOrNull, "<*Insert your API Key Here*>", userIdentifierStrOrNull, labelsOrNull );
-```
-
-The first parameter is a function callback to receive your userIdentifier one-way hash. It is returned for your reference so in most cases this can be null.
-
-Replace "<*Insert your API Key Here*>" with your Quantcast API Key, which can be generated in your Quantcast account homepage on the Quantcast website. The API Key is used as the basic reporting entity for Quantcast Measure. The same API Key can be used across multiple apps (i.e. AppName Free / AppName Paid) and/or app platforms (i.e. iOS / Android). For all apps under each unique API Key, Quantcast will report the aggregate audience among them all, and also identify/report on the individual app versions.
-
-The userIdentifierStrOrNull parameter is a string that uniquely identifies an individual user, such as an account login. Passing this information allows Quantcast to provide reports on your combined audience across all your properties: online, mobile web and mobile app. This parameter may be null if your app does not have a user identifier available at the time your app launches. If the user identifier is not known at the time the 'deviceready' event is called, the user identifier can be recorded at a later time.   If a user identifier is given, we will create a 1-way hash with the value and return it back via the callbackOrNull argument. Please see the [Combined Web/App Audiences](#combined-webapp-audiences) section for more information.
-
-The last parameter may be null and is discussed in more detail in the Event Labels section under Optional Code Integrations.
+    The last parameter may be null and is discussed in more detail in the [Event Labels](#event-labels) section under Optional Code Integrations.
+    
 
 
 
-2) We are also going to need to add additional event listeners for the 'pause' and 'resume' events.   This is usually done at the top of the 'deviceready' event listener by adding the following lines:
+#### Detailed Code Integration ####
 
-```javascript
-document.addEventListener('pause', app.onPause, false);
-document.addEventListener('resume', app.onResume, false);
-```
 
-Remember that the scope of "this" is the event in an event listener and not the object that contains it.  So above (and in the default PhoneGap template) we had to explicitly call "app. ".
+If you need more control over pause and resume events to accomplish things such as setting specific labels, then you will have to a couple more simple steps.
+
+1. In the 'deviceready' event listener usually found in the index.js file, we can begin the measurement session by calling the following:
+
+    ```javascript
+    QuantcastMeasurement.beginMeasurementSession( callbackOrNull, "<*Insert your API Key Here*>", userIdentifierStrOrNull, labelsOrNull );
+    ```
+
+    The first parameter is a function callback to receive your userIdentifier one-way hash. It is returned for your reference so in most cases this can be null.
+
+    Replace "<*Insert your API Key Here*>" with your Quantcast API Key, which can be generated in your Quantcast account homepage on the Quantcast website. The API Key is used as the basic reporting entity for Quantcast Measure. The same API Key can be used across multiple apps (i.e. AppName Free / AppName Paid) and/or app platforms (i.e. iOS / Android). For all apps under each unique API Key, Quantcast will report the aggregate audience among them all, and also identify/report on the individual app versions.
+
+    The userIdentifierStrOrNull parameter is a string that uniquely identifies an individual user, such as an account login. Passing this information allows Quantcast to provide reports on your combined audience across all your properties: online, mobile web and mobile app. This parameter may be null if your app does not have a user identifier available at the time your app launches. If the user identifier is not known at the time the 'deviceready' event is called, the user identifier can be recorded at a later time.   If a user identifier is given, we will create a 1-way hash with the value and return it back via the callbackOrNull argument. Please see the [Combined Web/App Audiences](#combined-webapp-audiences) section for more information.
+
+    The last parameter may be null and is discussed in more detail in the Event Labels section under Optional Code Integrations.
+
+
+
+2. We are also going to need to add additional event listeners for the 'pause' and 'resume' events.   This is usually done at the top of the 'deviceready' event listener by adding the following lines:
+
+    ```javascript
+    document.addEventListener('pause', app.onPause, false);
+    document.addEventListener('resume', app.onResume, false);
+    ```
+
+    Remember that the scope of "this" is the event in an event listener and not the object that contains it.  So above (and in the default PhoneGap template) we had to explicitly call "app. ".
   
-We also need to handle these new events by adding the following functions to index.js
+3. We also need to handle these new events by adding the following functions to index.js
 
-```javascript
-onPause: function() {
-   QuantcastMeasurement.pauseMeasurementSession(labelsOrNull);
-},  
-onResume: function() {
-    QuantcastMeasurement.resumeMeasurementSession(labelsOrNull);
-},
-```
+    ```javascript
+    onPause: function() {
+       QuantcastMeasurement.pauseMeasurementSession(labelsOrNull);
+    },  
+    onResume: function() {
+        QuantcastMeasurement.resumeMeasurementSession(labelsOrNull);
+    },
+    ```
 
 
-Again the parameter may be null and is discussed in more detail in the [Event Labels](#event-labels) section under Optional Code Integrations.
+    Again the parameter may be null and is discussed in more detail in the [Event Labels](#event-labels) section under Optional Code Integrations.
 
 
 
@@ -104,9 +130,9 @@ QuantcastMeasurement.displayUserPrivacyDialog(callbackOrNull);
 The parameter is an optional function callback that returns a boolean if the privacy settings have changed.  An example callback function might look like this:
 
 ```javascript
-    optOutCallback: function(optedOut){
-        alert("Quantcast Opt out status changed to: \r\n"+optedOut );
-    }
+optOutCallback: function(optedOut){
+    alert("Quantcast Opt out status changed to: \r\n"+optedOut );
+}
 ```
 
 Note: when a user opts out of Quantcast Measure, the SDK immediately stops transmitting information to or from the user's device and deletes any cached information that may have retained. Furthermore, when a user opts out of any single app on a device, the action affects all other apps on the device that are integrated with Quantcast Measure the next time they are launched.
@@ -157,12 +183,12 @@ QuantcastMeasurement.recordUserIdentifier(callbackOrNull, userIdentifierStr, lab
 
 The current user identifier is passed in the userIdentifierStr argument.
 
-Note that in all cases, the Quantcast iOS SDK will immediately 1-way hash the passed app user identifier, and return the hashed value for your reference via the callbackOrNull function. You do not need to take any action with the hashed value and can set the callback as null if desired.  The callback function will have one argument which is the 1-way hash value.  For example
+Note that in all cases, the Quantcast iOS SDK will immediately 1-way hash the passed app user identifier, and return the hashed value for your reference via the callbackOrNull function. You do not need to take any action with the hashed value and can set the callback as null if desired.  The callback function will have one argument which is the 1-way hash value.  For example:
 
 ```javascript
-    hashcallback: function(hash){
-        alert("This is my hash: \r\n"+hash );
-    }
+hashcallback: function(hash){
+    alert("This is my hash: \r\n"+hash );
+}
 ```
 
 #### SDK Customization ####
@@ -188,4 +214,4 @@ QuantcastMeasurement.uploadEventCount(20);
 You may change this property multiple times throughout your app's execution and this number must be greater than 1.
 
 ### License ###
-This Quantcast Measurement SDK is Copyright 2012 Quantcast Corp. This SDK is licensed under the Quantcast Mobile App Measurement Terms of Service, found at the Quantcast website here (the "License"). You may not use this SDK unless (1) you sign up for an account at Quantcast.com and click your agreement to the License and (2) are in compliance with the License. See the License for the specific language governing permissions and limitations under the License.
+This Quantcast Measurement SDK is Copyright 2012 Quantcast Corp. This SDK is licensed under the Quantcast Mobile App Measurement Terms of Service, found at [the Quantcast website here](https://www.quantcast.com/learning-center/quantcast-terms/mobile-app-measurement-tos "Quantcast's Measurement SDK Terms of Service") (the "License"). You may not use this SDK unless (1) you sign up for an account at [Quantcast.com](https://www.quantcast.com "Quantcast.com") and click your agreement to the License and (2) are in compliance with the License. See the License for the specific language governing permissions and limitations under the License.
