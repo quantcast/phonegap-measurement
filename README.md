@@ -38,7 +38,7 @@ Once you have downloaded the Quantcast PhoneGap SDK's code, perform the followin
     ```
     under the plugins tag.
 
-4. Include the platform specific Quantcast Measure SDK to your project. 
+4. Include the platform specific Quantcast Measure SDK to your project. Note that you do not have to do the code integration indicated in the native SDK documentation. You just need to follow the **Project Setup** instructions for the SDK.
     * The iOS SDK can be found [here](https://github.com/quantcast/ios-measurement).
     * The Android SDK can be found [here](https://github.com/quantcast/android-measurement).
 
