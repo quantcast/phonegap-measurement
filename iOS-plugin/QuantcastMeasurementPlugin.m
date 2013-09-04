@@ -24,6 +24,8 @@
 #import "QuantcastMeasurementPlugin.h"
 #import "QuantcastMeasurement.h"
 
+NSString *const VersionLabel = @"_sdk.phonegap.ios.v101";
+
 @interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>
 
 @property (nonatomic, copy) NSString* optOutDisplayCallbackID; //we have to hold this for the delegate callback
@@ -50,7 +52,7 @@
     
     NSString* apiKey = [self argumentAsString:[command.arguments objectAtIndex:0]];
     NSString* userId = [self argumentAsString:[command.arguments objectAtIndex:1]];
-    self.labels = [self argumentAsLabel:[command.arguments objectAtIndex:2]];
+    self.labels = [self argumentAsLabel:[command.arguments objectAtIndex:2] appendingItem:VersionLabel];
     
     //always setup terminate notifications since phonegap doesnt have one
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(terminateNotification) name:UIApplicationWillTerminateNotification object:nil];
@@ -79,7 +81,7 @@
 }
 
 - (void)resumeMeasurementSession:(CDVInvokedUrlCommand*)command{
-    id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0]];
+    id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0] appendingItem:VersionLabel];
     [[QuantcastMeasurement sharedInstance] resumeSessionWithLabels:labels];
 }
 
@@ -169,6 +171,19 @@
     BOOL retval = NO;
     if([object isKindOfClass:[NSString class]] || [object isKindOfClass:[NSNumber class]]){
         retval = [object boolValue];
+    }
+    return retval;
+}
+
+-(id<NSObject>)argumentAsLabel:(id<NSObject>)labels appendingItem:(NSString*)newItem{
+    id<NSObject> retval = nil;
+    if(labels == nil){
+        retval = newItem;
+    }else if([labels isKindOfClass:[NSString class]]){
+        retval = [NSArray arrayWithObjects:labels, newItem, nil];
+    }else if([labels isKindOfClass:[NSArray class]]){
+        NSArray* labelArray = (NSArray*)labels;
+        retval = [labelArray arrayByAddingObject:newItem];
     }
     return retval;
 }
