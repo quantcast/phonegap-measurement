@@ -1,4 +1,4 @@
-Quantcast Measure for PhoneGap (Cordova) SDK
+Quantcast Measure for PhoneGap (Cordova) 3.0
 ==========================
 
 Thank you for downloading the Quantcast PhoneGap SDK! This SDK lets you measure your PhoneGap app on either iOS or Android using Quantcast Measure for Mobile Apps. This implementation guide provides steps for integrating the SDK, so you can take advantage of valuable, actionable insights:
@@ -10,43 +10,23 @@ Thank you for downloading the Quantcast PhoneGap SDK! This SDK lets you measure 
 If you have any implementation questions, please email mobilesupport@quantcast.com. We're here to help.
 
 
-For help creating a PhoneGap project, see [PhoneGap Documentation](http://docs.phonegap.com/en/2.5.0/guide_getting-started_index.md.html#Getting%20Started%20Guides)
+For help creating a PhoneGap project, see [PhoneGap Documentation](http://docs.phonegap.com/en/edge/guide_platforms_index.md.html)
 
 Integrating Quantcast Measure for PhoneGap
 -------------------------------------
 
 ### Project Setup ###
-To integrate Quantcast Measure into your PhoneGap project, you will to add both the Quantcast Measure PhoneGap plugin and the appropriate native Quantcast Measure for Mobiles Apps SDK to your project.
+Quantcast Measure for Phonegap 3.0 is designed to work with the Phonegap [Command Line Interface](http://docs.phonegap.com/en/edge/guide_cli_index.md.html#The%20Command-line%20Interface)
 
-Begin by cloning the Quantcast PhoneGap SDK's git repository. Open the Terminal application in your Mac and issue the following commands:
-
-``` bash
-git clone https://github.com/quantcast/phonegap-measurement.git ./quantcast-phonegap-sdk
+To integrate, navigate to your projects root directory and run 
+```
+phonegap local plugin add https://github.com/SmithKevin/phonegap3-measurement
 ```
 
-Once you have downloaded the Quantcast PhoneGap SDK's code, perform the following steps:
-
-1. Determine which platform, iOS or Android, you need and copy the files found in the appropiate directory with the Quantcast Measure for Phonegap SDKinto your projects "Plugins" directory, then add the source code to the project.
-    * **iOS** projects will need to add the files found under the `iOS-plugin` folder in the Quantcast Measure for Phonegap SDK
-    * **Android** projects will need to add the files found the `android-plugin` folder in the Quantcast Measure for Phonegap SDK
-
-2. Copy QuantcastMeasurement.js to the www/js folder in your PhoneGap project.
-
-3. In config.xml, add 
-    ```xml
-    <plugin name="QuantcastMeasurementPlugin" value="QuantcastMeasurementPlugin" />" 
-    ```
-    under the plugins tag.
-
-4. Include the platform specific Quantcast Measure SDK to your project. Note that you do not have to do the code integration indicated in the native SDK documentation. You just need to follow the **Project Setup** instructions for the SDK.
-    * The iOS SDK can be found [here](https://github.com/quantcast/ios-measurement).
-    * The Android SDK can be found [here](https://github.com/quantcast/android-measurement).
-
-See [Quantcast Measure for Mobile](https://www.quantcast.com/measurement/quantcast-measure-for-mobile-apps/) for more information on registering your app with Quantcast.
-
+Once successfully installed.  You will just need to follow the [Required Code Integration](#required-code-integration).
 
 ### Required Code Integration ###
-You have an option to use either the [Consolidated Setup](#consolidated-setup-integration) or the [Detailed Setup](#detailed-code-untegration) when performing the required code integration to set up Quantcast Measure in your PhoneGap project.
+You have an option to use either the [Consolidated Setup](#consolidated-setup-integration) or the [Detailed Setup](#detailed-code-untegration) when performing the required code integration depending on your needs.
 
 #### Consolidated Setup Integration ####
 
@@ -58,7 +38,7 @@ The consolidated method can be used for simpler implementations of the Quantcast
     QuantcastMeasurement.setUpQuantcastMeasurement("<*Insert your API Key Here*>", userIdentifierStrOrNull, labelsOrNull );
     ```
 
-    Replace "<*Insert your API Key Here*>" with your Quantcast API Key, which can be generated in your Quantcast account homepage on the Quantcast website. The API Key is used as the basic reporting entity for Quantcast Measure. The same API Key can be used across multiple apps (i.e. AppName Free / AppName Paid) and/or app platforms (i.e. iOS / Android). For all apps under each unique API Key, Quantcast will report the aggregate audience among them all, and also identify/report on the individual app versions.
+    Replace "<*Insert your API Key Here*>" with your Quantcast API Key, which can be generated in your Quantcast account homepage on the [Quantcast website](http://quantcast.com). The API Key is used as the basic reporting entity for Quantcast Measure. The same API Key can be used across multiple apps (i.e. AppName Free / AppName Paid) and/or app platforms (i.e. iOS / Android). For all apps under each unique API Key, Quantcast will report the aggregate audience among them all, and also identify/report on the individual app versions.
 
     The userIdentifierStrOrNull parameter is a string that uniquely identifies an individual user, such as an account login. Passing this information allows Quantcast to provide reports on your combined audience across all your properties: online, mobile web and mobile app. This parameter may be null if your app does not have a user identifier available at the time your app launches. If the user identifier is not known at the time the 'deviceready' event is called, the user identifier can be recorded at a later time. Please see the [Combined Web/App Audiences](#combined-webapp-audiences) section for more information.
 
@@ -156,22 +136,6 @@ Most of Quantcast SDK's public methods have an option to provide one or more lab
 
 The labels argument of most Quantcast SDK methods can either be a single string ("label") or multiple string in an Array (["label1", "label2"])  While there is no specific constraint on the intended use of the label dimension, it is not recommended that you use it to indicate discrete events; in these cases, use the logEvent function described under [Tracking App Events](#tracking-app-events).
 
-
-
-#### Geo-Location Measurement ####
-To turn on geo-tracking, insert the following call into your 'deviceready' event listener after you call either form of the beginMeasurementSession methods:
-
-```javascript
-QuantcastMeasurement.setGeoLocation(true);
-```
-
-Note that you should only enable geo-tracking if your app has some location-aware purpose.
-
-The Quantcast SDK will automatically pause geo-tracking while your app is in the background. This is done for both battery life and privacy considerations.
-
-
-
-
 #### Combined Web/App Audiences ####
 Quantcast Measure enables you to measure your combined web and mobile app audiences, allowing you to understand the differences and similarities of your online and mobile app audiences, or even the combined audiences of your different apps. To enable this feature, you will need to provide a user identifier, which Quantcast will always anonymize with a 1-way hash before it is transmitted from the user's device. This user identifier should also be provided for your website(s); please see [Quantcast's web measurement documentation](https://www.quantcast.com/learning-center/guides/cross-platform-audience-measurement-guide) for instructions.
 
@@ -215,3 +179,4 @@ You may change this property multiple times throughout your app's execution and 
 
 ### License ###
 This Quantcast Measurement SDK is Copyright 2012 Quantcast Corp. This SDK is licensed under the Quantcast Mobile App Measurement Terms of Service, found at [the Quantcast website here](https://www.quantcast.com/learning-center/quantcast-terms/mobile-app-measurement-tos "Quantcast's Measurement SDK Terms of Service") (the "License"). You may not use this SDK unless (1) you sign up for an account at [Quantcast.com](https://www.quantcast.com "Quantcast.com") and click your agreement to the License and (2) are in compliance with the License. See the License for the specific language governing permissions and limitations under the License.
+
