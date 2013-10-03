@@ -12,6 +12,8 @@ If you have any implementation questions, please email mobilesupport@quantcast.c
 
 For help creating a PhoneGap project, see [PhoneGap Documentation](http://docs.phonegap.com/en/edge/guide_platforms_index.md.html)
 
+Note:  The plugin supporting PhoneGap 2 can still be found in the legacy/phonegap2 branch of this repository.
+
 Integrating Quantcast Measure for PhoneGap
 -------------------------------------
 
@@ -24,6 +26,7 @@ phonegap local plugin add https://github.com/SmithKevin/phonegap3-measurement
 ```
 
 Once successfully installed.  You will just need to follow the [Required Code Integration](#required-code-integration).
+ 
 
 ### Required Code Integration ###
 You have an option to use either the [Consolidated Setup](#consolidated-setup-integration) or the [Detailed Setup](#detailed-code-untegration) when performing the required code integration depending on your needs.
