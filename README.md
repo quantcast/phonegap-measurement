@@ -1,4 +1,4 @@
-Quantcast Measure for PhoneGap (Cordova) 3.0
+Quantcast Measure for PhoneGap (Cordova) 3.0 Plugin
 ==========================
 
 Thank you for downloading the Quantcast PhoneGap SDK! This SDK lets you measure your PhoneGap app on either iOS or Android using Quantcast Measure for Mobile Apps. This implementation guide provides steps for integrating the SDK, so you can take advantage of valuable, actionable insights:

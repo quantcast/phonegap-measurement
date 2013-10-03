@@ -7,7 +7,6 @@
  * https://www.quantcast.com and click your agreement to the License and (2) are in
  * compliance with the License. See the License for the specific language governing
  * permissions and limitations under the License.
- *
  */
 
 #import <Cordova/CDV.h>
