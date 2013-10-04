@@ -88,6 +88,7 @@
         <header-file src="src/ios/sdk/QuantcastOptOutDelegate.h" />
         <header-file src="src/ios/sdk/QuantcastDatabase.h" />
         <header-file src="src/ios/sdk/QuantcastEventLogger.h" />
+        <header-file src="src/ios/sdk/QuantcastMeasurement+Internal.h" />
         <source-file src="src/ios/sdk/QuantcastDatabase.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/sdk/QuantcastDataManager.h" />
         <source-file src="src/ios/sdk/QuantcastDataManager.m" compiler-flags="-fno-objc-arc"/>
