@@ -22,7 +22,7 @@ Quantcast Measure for Phonegap 3.0 is designed to work with the Phonegap [Comman
 
 To integrate, navigate to your projects root directory and run 
 ```
-phonegap local plugin add https://github.com/SmithKevin/phonegap3-measurement
+phonegap local plugin add https://github.com/quantcast/phonegap-measurement
 ```
 
 Once successfully installed.  You will just need to follow the [Required Code Integration](#required-code-integration).

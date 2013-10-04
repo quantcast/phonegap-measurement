@@ -1,8 +1,8 @@
 package com.quantcast.phonegapplugin;
 
 import com.quantcast.measurement.service.QuantcastClient;
-import org.apache.cordova.api.CallbackContext;
-import org.apache.cordova.api.CordovaPlugin;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -18,7 +18,10 @@ public class QuantcastMeasurementPlugin extends CordovaPlugin {
             String apiKey = args.getString(0);
             String userId = args.getString(1);
             String[] labels = this.getLabels(args.get(2), VERSION_LABEL);
-            QuantcastClient.activityStart(cordova.getActivity(), apiKey, userId, labels);
+            String userhash = QuantcastClient.activityStart(cordova.getActivity(), apiKey, userId, labels);
+            if(userhash != null){
+                callbackContext.success(userhash);
+            }
         } else if (action.equals("endMeasurementSession")) {
             QuantcastClient.activityStop(this.getLabels(args.get(0)));
         } else if (action.equals("pauseMeasurementSession")) {
@@ -27,7 +30,10 @@ public class QuantcastMeasurementPlugin extends CordovaPlugin {
             String[] labels = this.getLabels(args.get(0), VERSION_LABEL);
             QuantcastClient.activityStart(cordova.getActivity(), labels);
         } else if (action.equals("recordUserIdentifier")) {
-            QuantcastClient.recordUserIdentifier(args.getString(0));
+            String userhash = QuantcastClient.recordUserIdentifier(args.getString(0));
+            if(userhash != null){
+                callbackContext.success(userhash);
+            }
         } else if (action.equals("logEvent")) {
             QuantcastClient.logEvent(args.getString(0), this.getLabels(args.get(1)));
         } else if (action.equals("setGeolocation")) {
