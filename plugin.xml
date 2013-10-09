@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="com.quantcast.phonegap.measurement"
+    id="com.quantcast.phonegapplugin"
     version="1.1.0">
 
     <name>Quantcast Measurement for Apps</name>
@@ -51,13 +51,10 @@
         <source-file src="src/android/sdk/QuantcastClient.java" target-dir="src/com/quantcast/measurement/service" /-->
         <source-file src="src/android/sdk/QuantcastAndroidSdk.jar" target-dir="libs" />
         
-        
-        <config-file target="res/xml/plugins.xml" parent="/plugins">
-            <plugin name="QuantcastMeasurementPlugin" value="com.quantcast.phonegapplugin.QuantcastMeasurement"/>
-        </config-file>
-
-        <config-file target="res/xml/config.xml" parent="plugins">
-            <plugin name="QuantcastMeasurementPlugin" value="com.quantcast.phonegapplugin.QuantcastMeasurement"/>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="QuantcastMeasurementPlugin">
+                <param name="android-package" value="com.quantcast.phonegapplugin.QuantcastMeasurementPlugin"/>
+            </feature>
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
