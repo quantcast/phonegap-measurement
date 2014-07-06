@@ -1,26 +1,19 @@
 /*
- * Copyright 2012 Quantcast Corp.
+ * © Copyright 2012-2014 Quantcast Corp.
  *
  * This software is licensed under the Quantcast Mobile App Measurement Terms of Service
  * https://www.quantcast.com/learning-center/quantcast-terms/mobile-app-measurement-tos
  * (the “License”). You may not use this file unless (1) you sign up for an account at
  * https://www.quantcast.com and click your agreement to the License and (2) are in
  * compliance with the License. See the License for the specific language governing
- * permissions and limitations under the License.
- *
+ * permissions and limitations under the License. Unauthorized use of this file constitutes
+ * copyright infringement and violation of law.
  */
+#if !__has_feature(objc_arc)
+#error "Quantcast Measurement is designed to be used with ARC. Please turn on ARC or add '-fobjc-arc' to this file's compiler flags"
+#endif // !__has_feature(objc_arc)
 
-#ifndef __has_feature
-#define __has_feature(x) 0
-#endif
-#ifndef __has_extension
-#define __has_extension __has_feature // Compatibility with pre-3.0 compilers.
-#endif
-
-#if __has_feature(objc_arc) && __clang_major__ >= 3
-#error "Quantcast Measurement is not designed to be used with ARC. Please add '-fno-objc-arc' to this file's compiler flags"
-#endif // __has_feature(objc_arc)
-
+#import <zlib.h>
 #import "QuantcastUtils.h"
 #import "QuantcastParameters.h"
 #import "QuantcastMeasurement.h"
@@ -28,6 +21,8 @@
 #ifndef QCMEASUREMENT_USE_SECURE_CONNECTIONS
 #define QCMEASUREMENT_USE_SECURE_CONNECTIONS 0
 #endif
+
+static BOOL _enableLogging = NO;
 
 @interface QuantcastMeasurement ()
 // declare "private" method here
@@ -66,7 +61,7 @@
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:cacheDir]) {
         if (![[NSFileManager defaultManager] createDirectoryAtPath:cacheDir withIntermediateDirectories:YES attributes:nil error:nil]){
-            NSLog(@"QC Measurement: Unable to create cache directory = %@", cacheDir );
+            QUANTCAST_LOG(@"Unable to create cache directory = %@", cacheDir );
             return nil;
         }
     }
@@ -83,7 +78,7 @@
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:cacheDir]) {
         if (![[NSFileManager defaultManager] createDirectoryAtPath:cacheDir withIntermediateDirectories:YES attributes:nil error:nil]){
-            NSLog(@"QC Measurement: Unable to create cache directory = %@", cacheDir );
+            QUANTCAST_LOG(@"Unable to create cache directory = %@", cacheDir );
             return nil;
         }
     }
@@ -99,7 +94,7 @@
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:cacheDir]) {
         if (![[NSFileManager defaultManager] createDirectoryAtPath:cacheDir withIntermediateDirectories:YES attributes:nil error:nil]){
-            NSLog(@"QC Measurement: Unable to create cache directory = %@", cacheDir );
+            QUANTCAST_LOG(@"Unable to create cache directory = %@", cacheDir );
             return nil;
         }
     }
@@ -114,7 +109,7 @@
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:cacheDir]) {
         if (![[NSFileManager defaultManager] createDirectoryAtPath:cacheDir withIntermediateDirectories:YES attributes:nil error:nil]){
-            NSLog(@"QC Measurement: Unable to create cache directory = %@", cacheDir );
+            QUANTCAST_LOG(@"Unable to create cache directory = %@", cacheDir );
             return nil;
         }
     }
@@ -127,7 +122,7 @@
     
     NSString* cacheDir = [QuantcastUtils quantcastCacheDirectoryPath];
     
-    NSError* dirError = nil;
+    NSError* __autoreleasing dirError = nil;
     NSArray* dirContents = [fileManager contentsOfDirectoryAtPath:cacheDir error:&dirError];
     
     if ( nil == dirError && [dirContents count] > 0 ) {
@@ -136,11 +131,11 @@
         
         for (NSString* filename in dirContents) {
             if ( ![filesToKeepSet containsObject:filename] ) {
-                NSError* error = nil;
+                NSError* __autoreleasing error = nil;
                 
                 [fileManager removeItemAtPath:[[QuantcastUtils quantcastCacheDirectoryPath] stringByAppendingPathComponent:filename] error:&error];
                 if (nil != error) {
-                    NSLog(@"QC Measurement: Unable to delete Quantcast Cache directory! error = %@", error);
+                    QUANTCAST_LOG(@"Unable to delete Quantcast Cache directory! error = %@", error);
                 }
 
             }
@@ -184,8 +179,7 @@
     return hashStr;
 }
 
-#import "zlib.h" 
-+(NSData*)gzipData:(NSData*)inData error:(NSError**)outError {
++(NSData*)gzipData:(NSData*)inData error:(NSError*__autoreleasing*)outError {
     if (!inData || [inData length] == 0)  
     {  
         if ( NULL != outError ) {
@@ -205,7 +199,7 @@
     gzipStream.opaque = Z_NULL;
     gzipStream.total_out = 0;
     gzipStream.next_in = (Bytef*)[inData bytes];
-    gzipStream.avail_in = [inData length];
+    gzipStream.avail_in = (uInt)[inData length];
     
     gzipErr = deflateInit2(&gzipStream, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY );
     
@@ -257,7 +251,7 @@
         }
         
         gzipStream.next_out = [compressedResults mutableBytes] + gzipStream.total_out;
-        gzipStream.avail_out = [compressedResults length] - gzipStream.total_out;
+        gzipStream.avail_out = (uInt)([compressedResults length] - gzipStream.total_out);
         
         
         compResult = deflate(&gzipStream, Z_FINISH );
@@ -297,7 +291,7 @@
     return [NSData dataWithData:compressedResults];
 }
 
-+(void)handleConnection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge withTrustedHost:(NSString*)inTrustedHost loggingEnabled:(BOOL)inEnableLogging {
++(void)handleConnection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge withTrustedHost:(NSString*)inTrustedHost {
  
 #if QCMEASUREMENT_USE_SECURE_CONNECTIONS
     NSUInteger prevFailures = challenge.previousFailureCount;
@@ -315,11 +309,7 @@
         
         if ((err == noErr) && ((trustResult == kSecTrustResultProceed) || (trustResult == kSecTrustResultUnspecified))) {
             [challenge.sender useCredential:credentials forAuthenticationChallenge:challenge];
-            
-            if (inEnableLogging) {
-                NSLog(@"QC Measurement: Handled an authentication challenge from %@", challenge.protectionSpace.host );
-            }
-            
+            QUANTCAST_LOG(@"Handled an authentication challenge from %@", challenge.protectionSpace.host );
             return;
         }
         
@@ -343,17 +333,14 @@
             
              
             
-            SecTrustSetVerifyDate(trust, (CFDateRef)validCheckDate);
+            SecTrustSetVerifyDate(trust, (__bridge CFDateRef)validCheckDate);
             err = SecTrustEvaluate(trust, &trustResult);
             
             if ((err == noErr) && ((trustResult == kSecTrustResultProceed) || (trustResult == kSecTrustResultUnspecified))) {
                 
                 [challenge.sender useCredential:credentials forAuthenticationChallenge:challenge];
             
-                if (inEnableLogging) {
-                    NSLog(@"QC Measurement: Accepted invalid trust certificates from %@ due to device date = %@", challenge.protectionSpace.host, nowDate );
-                }
-                
+                QUANTCAST_LOG(@"Accepted invalid trust certificates from %@ due to device date = %@", challenge.protectionSpace.host, nowDate );
                 return;
             }
         }
@@ -362,11 +349,9 @@
 
         [challenge.sender cancelAuthenticationChallenge:challenge];
 
-        if (inEnableLogging) {
-            NSLog(@"QC Measurement: Could not validate trust certificates from %@", challenge.protectionSpace.host );
-        }
+        QUANTCAST_LOG(@"QC Measurement: Could not validate trust certificates from %@", challenge.protectionSpace.host );
         
-        NSError* error = [[[NSError alloc] initWithDomain:@"QCAuthenticationError" code:1 userInfo:@{ NSLocalizedDescriptionKey: @"Could not validate trust certificate", NSURLErrorFailingURLStringErrorKey : [[connection currentRequest] URL] } ] autorelease];
+        NSError* error = [[NSError alloc] initWithDomain:@"QCAuthenticationError" code:1 userInfo:@{ NSLocalizedDescriptionKey: @"Could not validate trust certificate", NSURLErrorFailingURLStringErrorKey : [[connection currentRequest] URL] } ];
         
         [[QuantcastMeasurement sharedInstance] logSDKError:QC_SDKERRORTYPE_HTTPSAUTHCHALLENGE
                                                  withError:error
@@ -375,10 +360,8 @@
     else {
         [challenge.sender cancelAuthenticationChallenge:challenge];
         
-        if (inEnableLogging) {
-            NSLog(@"QC Measurement: Got an unhandled authentication challenge from %@", challenge.protectionSpace.host );
-        }
-        NSError* error = [[[NSError alloc] initWithDomain:@"QCAuthenticationError" code:2 userInfo:@{ NSLocalizedDescriptionKey: @"Unhandled authentication challenge", NSURLErrorFailingURLStringErrorKey : [[connection currentRequest] URL] } ] autorelease];
+        QUANTCAST_LOG(@"Got an unhandled authentication challenge from %@", challenge.protectionSpace.host );
+        NSError* error = [[NSError alloc] initWithDomain:@"QCAuthenticationError" code:2 userInfo:@{ NSLocalizedDescriptionKey: @"Unhandled authentication challenge", NSURLErrorFailingURLStringErrorKey : [[connection currentRequest] URL] } ];
         [[QuantcastMeasurement sharedInstance] logSDKError:QC_SDKERRORTYPE_HTTPSAUTHCHALLENGE
                                                  withError:error
                                             errorParameter:challenge.protectionSpace.host];
@@ -428,6 +411,32 @@
     return [NSURL URLWithString:newURLStr];
 }
 
++(id<NSObject>)combineLabels:(id<NSObject>)labels1 withLabels:(id<NSObject>)labels2 {
+    if (nil == labels2) {
+        return labels1;
+    }
+    else if (nil == labels1){
+        return labels2;
+    }
+    
+    NSMutableSet* set = [NSMutableSet set];
+    if ( [labels1 isKindOfClass:[NSArray class]] ) {
+        [set addObjectsFromArray:(NSArray*)labels1];
+    }
+    else {
+        [set addObject:labels1];
+    }
+    
+    if ( [labels2 isKindOfClass:[NSArray class]] ) {
+        [set addObjectsFromArray:(NSArray*)labels2];
+    }
+    else {
+        [set addObject:labels2];
+    }
+    
+    return [set allObjects];
+}
+
 
 +(NSString*)encodeLabelsList:(NSArray*)inLabelsArrayOrNil {
     if ( nil == inLabelsArrayOrNil ) {
@@ -451,7 +460,7 @@
             }
         }
         else {
-            NSLog(@"QC Measurment: ERROR - A label was passed in an NSArray that was not a NSString. label = %@", object);
+            QUANTCAST_ERROR(@"A label was passed in an NSArray that was not a NSString. label = %@", object);
         }
     }
     
@@ -459,25 +468,63 @@
 }
 
 +(NSString *)urlEncodeString:(NSString*)inString {
-	NSString* encodedString = (NSString *)CFURLCreateStringByAddingPercentEscapes( kCFAllocatorDefault, (CFStringRef)inString, NULL, (CFStringRef)@"!*'\"();:@&=+$,/?%#[]% ", CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding) );
+	NSString* encodedString = (NSString *)CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes( kCFAllocatorDefault, (CFStringRef)inString, NULL, (CFStringRef)@"!*'\"();:@&=+$,/?%#[]% ", CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding) ));
 
 
-    return [encodedString autorelease];
+    return encodedString;
 }
 
-+(NSString*)JSONEncodeString:(NSString*)inString {
-	NSMutableString* s = [NSMutableString stringWithString:inString];
++(void)setLogging:(BOOL)loggingOn{
+    _enableLogging = loggingOn;
+}
+
++(BOOL)logging{
+    return _enableLogging;
+}
+
++(NSString*)generateUUID {
+    CFUUIDRef newUUID = CFUUIDCreate(kCFAllocatorDefault);
+    CFStringRef UUIDStr = CFUUIDCreateString(kCFAllocatorDefault, newUUID);
     
-    [s replaceOccurrencesOfString:@"\\" withString:@"\\\\" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"\"" withString:@"\\\"" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"/" withString:@"\\/" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"\n" withString:@"\\n" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"\b" withString:@"\\b" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"\f" withString:@"\\f" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"\r" withString:@"\\r" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
-	[s replaceOccurrencesOfString:@"\t" withString:@"\\t" options:NSCaseInsensitiveSearch range:NSMakeRange(0, [s length])];
+    NSString* uuid = [NSString stringWithString:(__bridge NSString*)UUIDStr];
     
-	return [NSString stringWithString:s];
+    CFRelease(UUIDStr);
+    CFRelease(newUUID);
+    
+    return uuid;
+}
+
++(NSString*)stringFromObject:(id)inObject defaultValue:(NSString*)inDefaultValue{
+    NSString* retString = inDefaultValue;
+    if ( [inObject isKindOfClass:[NSString class]] ) {
+        retString = (NSString*)inObject;
+    }
+    else if ([inObject isKindOfClass:[NSNumber class]] ) {
+        NSNumber* number = (NSNumber*)inObject;
+        retString = [number stringValue];
+    }
+    return retString;
+}
+
++(NSDate*)appInstallTime {
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    if ([paths count] > 0) {
+        NSString* base = [paths objectAtIndex:0];
+        NSError* __autoreleasing error = nil;
+        NSDictionary* attrib = [[NSFileManager defaultManager] attributesOfItemAtPath:base error:&error];
+        if (nil != error) {
+            QUANTCAST_LOG(@"Error getting file attributes = %@ ", error );
+        }
+        else {
+            NSDate* created = [attrib objectForKey:NSFileCreationDate];
+            if (nil != created) {
+                return created;
+            }
+        }
+    }
+    
+    return nil;
 }
 
 @end

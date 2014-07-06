@@ -1,30 +1,23 @@
 /*
- * Copyright 2012 Quantcast Corp.
+ * © Copyright 2012-2014 Quantcast Corp.
  *
  * This software is licensed under the Quantcast Mobile App Measurement Terms of Service
  * https://www.quantcast.com/learning-center/quantcast-terms/mobile-app-measurement-tos
  * (the “License”). You may not use this file unless (1) you sign up for an account at
  * https://www.quantcast.com and click your agreement to the License and (2) are in
  * compliance with the License. See the License for the specific language governing
- * permissions and limitations under the License.
- *
+ * permissions and limitations under the License. Unauthorized use of this file constitutes
+ * copyright infringement and violation of law.
  */
-
-#ifndef __has_feature
-#define __has_feature(x) 0
-#endif
-#ifndef __has_extension
-#define __has_extension __has_feature // Compatibility with pre-3.0 compilers.
-#endif
-
-#if __has_feature(objc_arc) && __clang_major__ >= 3
-#error "Quantcast Measurement is not designed to be used with ARC. Please add '-fno-objc-arc' to this file's compiler flags"
-#endif // __has_feature(objc_arc)
+#if !__has_feature(objc_arc)
+#error "Quantcast Measurement is designed to be used with ARC. Please turn on ARC or add '-fobjc-arc' to this file's compiler flags"
+#endif // !__has_feature(objc_arc)
 
 #import <QuartzCore/QuartzCore.h>
 #import "QuantcastOptOutViewController.h"
 #import "QuantcastOptOutDelegate.h"
 #import "QuantcastMeasurement.h"
+#import "QuantcastUtils.h"
 
 @interface QuantcastMeasurement ()
 
@@ -36,36 +29,31 @@
     BOOL _originalOptOutStatus;
     UISwitch* _onOffSwitch;
 }
-@property (retain,nonatomic) QuantcastMeasurement* measurement;
+@property (strong,nonatomic) QuantcastMeasurement* measurement;
 @end
 
 @implementation QuantcastOptOutViewController
-@synthesize measurement;
-@synthesize delegate;
 
--(id)initWithMeasurement:(QuantcastMeasurement*)inMeasurement delegate:(id<QuantcastOptOutDelegate>)inDelegate {
+-(id)initWithDelegate:(id<QuantcastOptOutDelegate>)inDelegate {
     self = [super init];
     if ( self ) {
         self.title = @"About Quantcast";
-        self.measurement = inMeasurement;
         self.delegate = inDelegate;
         
-        _originalOptOutStatus = self.measurement.isOptedOut;
+        _originalOptOutStatus = [QuantcastMeasurement sharedInstance].isOptedOut;
         
     }
     
-return self;
+    return self;
 }
 
 -(void)dealloc {
-    [measurement release];
-    delegate = nil;
+    _delegate = nil;
     
-    [super dealloc];
 }
 
 -(void)loadView{
-    self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done:)] autorelease];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(done:)];
     
     UIView* mainView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 460)];
     mainView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -83,7 +71,6 @@ return self;
     aboutText.font = [UIFont systemFontOfSize:14];
     aboutText.dataDetectorTypes = UIDataDetectorTypeLink;
     [mainView addSubview:aboutText];
-    [aboutText release];
     
     UIView* switchContainer = [[UIView alloc]initWithFrame:CGRectMake(10, 347, mainView.frame.size.width-20, 48)];
     switchContainer.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleRightMargin;
@@ -98,16 +85,13 @@ return self;
     allowText.font = [UIFont boldSystemFontOfSize:18];
     allowText.text = @"Allow Data Collection";
     [switchContainer addSubview:allowText];
-    [allowText release];
     
     _onOffSwitch = [[UISwitch alloc] initWithFrame:CGRectMake(211, 10, 79, 27)];
-    _onOffSwitch.on = !self.measurement.isOptedOut;
+    _onOffSwitch.on = ![QuantcastMeasurement sharedInstance].isOptedOut;
     [_onOffSwitch addTarget:self action:@selector(optOutStatusChanged:) forControlEvents:UIControlEventValueChanged];
     [switchContainer addSubview:_onOffSwitch];
-    [_onOffSwitch release];
     
     [mainView addSubview:switchContainer];
-    [switchContainer release];
     
     UIButton* review = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     review.frame = CGRectMake(10, 403, mainView.frame.size.width-20, 37);
@@ -119,7 +103,6 @@ return self;
     
     
     self.view = mainView;
-    [mainView release];
     
 }
 
@@ -174,10 +157,10 @@ return self;
     
     if ( _originalOptOutStatus != !_onOffSwitch.on ) {
         
-        [self.measurement setOptOutStatus:!_onOffSwitch.on];
+        [QuantcastMeasurement sharedInstance].isOptedOut = !_onOffSwitch.on;
 
         if ( nil != self.delegate && [self.delegate respondsToSelector:@selector(quantcastOptOutStatusDidChange:)] ) {
-            [self.delegate quantcastOptOutStatusDidChange:self.measurement.isOptedOut];
+            [self.delegate quantcastOptOutStatusDidChange:[QuantcastMeasurement sharedInstance].isOptedOut];
         }
     }
 
@@ -192,19 +175,7 @@ return self;
 }
 
 -(void)reviewPrivacyPolicy:(id)inSender {
-    NSURL* qcPrivacyURL = [NSURL URLWithString:@"http://www.quantcast.com/privacy/"];
-    
-    //keep them in app
-    UIViewController* webController = [[[UIViewController alloc] init] autorelease];
-    webController.title = @"Privacy Policy";
-    UIWebView* web = [[UIWebView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    web.scalesPageToFit = YES;
-    [web loadRequest:[NSURLRequest requestWithURL:qcPrivacyURL]];
-    webController.view = web;
-    [web release];
-    
-    [self.navigationController pushViewController:webController animated:YES];
-    
+    [[QuantcastMeasurement sharedInstance] displayQuantcastPrivacyPolicy:self];
 }
 
 -(void)done:(id)inSender {
