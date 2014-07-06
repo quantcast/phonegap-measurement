@@ -20,7 +20,7 @@
         <engine name="cordova" version=">=2.5.0" />
     </engines> 
 
-    <js-module src="www/QuantcastMeasurement.js" name="QuantcastMeasurementPlugin">
+    <js-module src="../www/QuantcastMeasurement.js" name="QuantcastMeasurementPlugin">
         <clobbers target="window.QuantcastMeasurement" />
     </js-module>
     
@@ -29,7 +29,7 @@
     </config-file>
 
     <platform name="android">
-        <source-file src="src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
+        <source-file src="../src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
         
         <!-- SDK Code -->
         <!--source-file src="src/android/sdk/AboutQuantcastScreen.java" target-dir="src/com/quantcast/measurement/service" />
@@ -49,7 +49,7 @@
         <source-file src="src/android/sdk/QCReferrerReceiver.java" target-dir="src/com/quantcast/measurement/service" />
         <source-file src="src/android/sdk/QCUtility.java" target-dir="src/com/quantcast/measurement/service" />
         <source-file src="src/android/sdk/QuantcastClient.java" target-dir="src/com/quantcast/measurement/service" /-->
-        <source-file src="src/android/sdk/QuantcastAndroidSdk.jar" target-dir="libs" />
+        <source-file src="../src/android/sdk/QuantcastAndroidSdk.jar" target-dir="libs" />
         
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="QuantcastMeasurementPlugin">
@@ -76,31 +76,31 @@
         </config-file>
     </platform>
     <platform name="ios">
-        <source-file src="src/ios/QuantcastMeasurementPlugin.m"/>
-        <header-file src="src/ios/QuantcastMeasurementPlugin.h" />
+        <source-file src="../src/ios/QuantcastMeasurementPlugin.m"/>
+        <header-file src="../src/ios/QuantcastMeasurementPlugin.h" />
         
         <!-- SDK Code -->
-        <header-file src="src/ios/sdk/QuantcastNetworkReachability.h" />
-        <header-file src="src/ios/sdk/QuantcastParameters.h" />
-        <header-file src="src/ios/sdk/QuantcastOptOutDelegate.h" />
-        <header-file src="src/ios/sdk/QuantcastEventLogger.h" />
-        <header-file src="src/ios/sdk/QuantcastMeasurement+Internal.h" />
-        <header-file src="src/ios/sdk/QuantcastDatabase.h" />
-        <source-file src="src/ios/sdk/QuantcastDatabase.m"/>
-        <header-file src="src/ios/sdk/QuantcastDataManager.h" />
-        <source-file src="src/ios/sdk/QuantcastDataManager.m"/>
-        <header-file src="src/ios/sdk/QuantcastEvent.h" />
-        <source-file src="src/ios/sdk/QuantcastEvent.m"/>
-        <header-file src="src/ios/sdk/QuantcastMeasurement.h" />
-        <source-file src="src/ios/sdk/QuantcastMeasurement.m"/>
-        <header-file src="src/ios/sdk/QuantcastOptOutViewController.h" />
-        <source-file src="src/ios/sdk/QuantcastOptOutViewController.m"/>
-        <header-file src="src/ios/sdk/QuantcastPolicy.h" />
-        <source-file src="src/ios/sdk/QuantcastPolicy.m"/>
-        <header-file src="src/ios/sdk/QuantcastUploadManager.h" />
-        <source-file src="src/ios/sdk/QuantcastUploadManager.m"/>
-        <header-file src="src/ios/sdk/QuantcastUtils.h" />
-        <source-file src="src/ios/sdk/QuantcastUtils.m"/>
+        <header-file src="../src/ios/sdk/QuantcastNetworkReachability.h" />
+        <header-file src="../src/ios/sdk/QuantcastParameters.h" />
+        <header-file src="../src/ios/sdk/QuantcastOptOutDelegate.h" />
+        <header-file src="../src/ios/sdk/QuantcastEventLogger.h" />
+        <header-file src="../src/ios/sdk/QuantcastMeasurement+Internal.h" />
+        <header-file src="../src/ios/sdk/QuantcastDatabase.h" />
+        <source-file src="../src/ios/sdk/QuantcastDatabase.m"/>
+        <header-file src="../src/ios/sdk/QuantcastDataManager.h" />
+        <source-file src="../src/ios/sdk/QuantcastDataManager.m"/>
+        <header-file src="../src/ios/sdk/QuantcastEvent.h" />
+        <source-file src="../src/ios/sdk/QuantcastEvent.m"/>
+        <header-file src="../src/ios/sdk/QuantcastMeasurement.h" />
+        <source-file src="../src/ios/sdk/QuantcastMeasurement.m"/>
+        <header-file src="../src/ios/sdk/QuantcastOptOutViewController.h" />
+        <source-file src="../src/ios/sdk/QuantcastOptOutViewController.m"/>
+        <header-file src="../src/ios/sdk/QuantcastPolicy.h" />
+        <source-file src="../src/ios/sdk/QuantcastPolicy.m"/>
+        <header-file src="../src/ios/sdk/QuantcastUploadManager.h" />
+        <source-file src="../src/ios/sdk/QuantcastUploadManager.m"/>
+        <header-file src="../src/ios/sdk/QuantcastUtils.h" />
+        <source-file src="../src/ios/sdk/QuantcastUtils.m"/>
 
 
 
