@@ -116,6 +116,7 @@
         <framework src="CoreGraphics.framework" />
         <framework src="CoreTelephony.framework" />
         <framework src="SystemConfiguration.framework" />
+        <framework src="AdSupport.framework" weak="true" />
 
     </platform>
 </plugin>
