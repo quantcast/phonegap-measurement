@@ -27,7 +27,7 @@ cordova plugin add https://github.com/quantcast/phonegap-measurement
 
 By default, the AdSupport framework is not added as a dependency.  However if you application serves advertisements, we highly recommend adding support for this framework.  This can be accomplished by using the following command instead
 ```
-cordova plugin add https://github.com/quantcast/phonegap-measurement#:/adsupport
+cordova plugin add https://github.com/quantcast/phonegap-measurement#adsupport
 ```
 
 Once successfully installed.  You will just need to follow the [Required Code Integration](#required-code-integration).
