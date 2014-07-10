@@ -76,7 +76,7 @@
         </config-file>
     </platform>
     <platform name="ios">
-        <source-file src="src/ios/QuantcastMeasurementPlugin.m"/>
+        <source-file src="src/ios/QuantcastMeasurementPlugin.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/QuantcastMeasurementPlugin.h" />
         
         <!-- SDK Code -->
