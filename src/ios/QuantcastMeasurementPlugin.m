@@ -24,7 +24,7 @@
 #import "QuantcastMeasurementPlugin.h"
 #import "QuantcastMeasurement.h"
 
-NSString *const VersionLabel = @"_sdk.phonegap.ios.v110";
+NSString *const VersionLabel = @"_sdk.phonegap.ios.v112";
 
 @interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>
 

@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 public class QuantcastMeasurementPlugin extends CordovaPlugin {
 
-    private static final String VERSION_LABEL = "_sdk.phonegap.android.v110";
+    private static final String VERSION_LABEL = "_sdk.phonegap.android.v112";
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         boolean retval = true;
