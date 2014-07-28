@@ -24,7 +24,7 @@
 #import "QuantcastMeasurementPlugin.h"
 #import "QuantcastMeasurement.h"
 
-NSString *const VersionLabel = @"_sdk.phonegap.ios.v112";
+NSString *const VersionLabel = @"_sdk.phonegap.ios.v113";
 
 @interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>
 
@@ -111,6 +111,12 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v112";
     
     BOOL locateEnabled = [self argumentAsBool:[command.arguments objectAtIndex:0]];
     [QuantcastMeasurement sharedInstance].geoLocationEnabled = locateEnabled;
+}
+
+- (void)setOptOut:(CDVInvokedUrlCommand*)command{
+    
+    BOOL optedOut = [self argumentAsBool:[command.arguments objectAtIndex:0]];
+    [QuantcastMeasurement sharedInstance].isOptedOut = optedOut;
 }
 
 - (void)displayUserPrivacyDialog:(CDVInvokedUrlCommand*)command{
