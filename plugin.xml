@@ -29,26 +29,16 @@
     </config-file>
 
     <platform name="android">
+        <info>
+            You need to install **Google Play Services** from the `Android Extras` section using the Android SDK manager (run `android`).
+            
+            You need to add the following line to your `local.properties`
+            
+            android.library.reference.1=PATH_TO_ANDROID_SDK/sdk/extras/google/google_play_services/libproject/google-play-services_lib
+        </info>
         <source-file src="src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
         
         <!-- SDK Code -->
-        <!--source-file src="src/android/sdk/AboutQuantcastScreen.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCDatabaseDAO.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCDataManager.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCDataUploader.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCDeduplicatedWebView.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCEvent.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCLocationManager.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCMeasurement.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCLog.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCNotificationCenter.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCNotificationListener.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCOptOutUtility.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCPolicy.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCReachability.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCReferrerReceiver.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QCUtility.java" target-dir="src/com/quantcast/measurement/service" />
-        <source-file src="src/android/sdk/QuantcastClient.java" target-dir="src/com/quantcast/measurement/service" /-->
         <source-file src="src/android/sdk/QuantcastAndroidSdk.jar" target-dir="libs" />
         
         <config-file target="res/xml/config.xml" parent="/*">
@@ -64,6 +54,8 @@
                     <action android:name="com.android.vending.INSTALL_REFERRER" />
                 </intent-filter>
              </receiver>
+            <meta-data android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
         </config-file>
 
 
@@ -71,8 +63,6 @@
             <uses-permission android:name="android.permission.INTERNET" />
  	        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
  	        <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
- 	        <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
- 	        <uses-permission android:name="android.permission.READ_PHONE_STATE" />
         </config-file>
     </platform>
     <platform name="ios">
