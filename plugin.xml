@@ -29,13 +29,6 @@
     </config-file>
 
     <platform name="android">
-        <info>
-            You need to install **Google Play Services** from the `Android Extras` section using the Android SDK manager (run `android`).
-            
-            You need to add the following line to your `local.properties`
-            
-            android.library.reference.1=PATH_TO_ANDROID_SDK/sdk/extras/google/google_play_services/libproject/google-play-services_lib
-        </info>
         <source-file src="src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
         
         <!-- SDK Code -->
@@ -45,6 +38,17 @@
             <feature name="QuantcastMeasurementPlugin">
                 <param name="android-package" value="com.quantcast.phonegapplugin.QuantcastMeasurementPlugin"/>
             </feature>
+        </config-file>
+        
+        <config-file target="custom_rules.xml" parent="/project">
+            <target name="-pre-build">
+                <echo>Copying Google Play Services</echo>
+                <copy todir="." overwrite="true">
+                    <fileset dir="${sdk.dir}/extras/google/google_play_services/libproject/google-play-services_lib">
+                        <exclude name="project.properties"/>
+                    </fileset>
+                </copy>
+            </target>
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
