@@ -126,6 +126,19 @@ var QuantcastMeasurement = {
                                "setGeolocation",
                                [geolocate]);
     },
+
+    /**
+     By default, opt out is off (false). If you wish for Quantcast to stop collecting all measurement data for this device, you should enable (set to true) this property shortly after starting a measurement session. In order to protect user privacy, Quantcast will not log locations any more granular than "city", and will not log device location while your app is in the background. NOTE - Geolocation measurment is only supported on iOS 5 or later. Attempting to set this property to true on a device running iOS 4.x will have no affect. You do not have to set this property to false in order to pause geo-location tracking when the app goes into the background, as this is done automatically by the API.
+      @param {boolean} optOut true if the user should be opted out
+     */
+    setOptOut: function (optOut) {
+        var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
+        
+        return cordovaRef.exec( null, null,
+                               "QuantcastMeasurementPlugin",
+                               "setOptOut",
+                               [optOut]);
+    },
     
     /**
      Will display a model dialog that provides the user with information on Quantcast Measurement and allows them to adjust their Quantcast App Measurement privacy settings for their device.
