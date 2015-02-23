@@ -123,6 +123,12 @@ optOutCallback: function(optedOut){
 }
 ```
 
+Alternatively you could handle the UI yourself and manually set the users opt out preference by calling:
+
+```javascript
+QuantcastMeasurement.setOptOut(false);
+```
+
 Note: when a user opts out of Quantcast Measure, the SDK immediately stops transmitting information to or from the user's device and deletes any cached information that may have retained. Furthermore, when a user opts out of any single app on a device, the action affects all other apps on the device that are integrated with Quantcast Measure the next time they are launched.
 
 
