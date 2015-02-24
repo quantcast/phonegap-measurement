@@ -29,6 +29,8 @@
     </config-file>
 
     <platform name="android">
+        <dependency id="com.google.playservices" url="https://github.com/floatinghotpot/google-play-services" commit="r19" />
+        
         <source-file src="src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
         
         <!-- SDK Code -->
@@ -39,17 +41,6 @@
                 <param name="android-package" value="com.quantcast.phonegapplugin.QuantcastMeasurementPlugin"/>
             </feature>
         </config-file>
-        
-        <config-file target="custom_rules.xml" parent="/project">
-            <target name="-pre-build">
-                <echo>Copying Google Play Services</echo>
-                <copy todir="./libs/google-play-services_lib" overwrite="true">
-                    <fileset dir="${sdk.dir}/extras/google/google_play_services/libproject/google-play-services_lib">
-                        <exclude name="project.properties"/>
-                    </fileset>
-                </copy>
-            </target>
-        </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
 	        <activity android:name="com.quantcast.measurement.service.AboutQuantcastScreen"/>
@@ -58,8 +49,6 @@
                     <action android:name="com.android.vending.INSTALL_REFERRER" />
                 </intent-filter>
              </receiver>
-            <meta-data android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
