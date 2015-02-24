@@ -43,10 +43,9 @@
         <config-file target="custom_rules.xml" parent="/project">
             <target name="-pre-build">
                 <echo>Copying Google Play Services</echo>
-                <copy todir="." overwrite="true">
+                <copy todir="./libs/google-play-services_lib" overwrite="true">
                     <fileset dir="${sdk.dir}/extras/google/google_play_services/libproject/google-play-services_lib">
                         <exclude name="project.properties"/>
-                        <exclude name="AndroidManifest.xml"/>
                     </fileset>
                 </copy>
             </target>
