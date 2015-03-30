@@ -29,14 +29,18 @@
 
 #define SYSTEM_VERSION_LESS_THAN(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 
+@class QuantcastPolicy;
+
 @interface QuantcastUtils : NSObject
 
-+(NSString*)quantcastCacheDirectoryPath;
-+(NSString*)quantcastCacheDirectoryPathCreatingIfNeeded;
++(NSString*)quantcastDeprecatedCacheDirectoryPath;
++(NSString*)quantcastSupportDirectoryPath;
++(NSString*)quantcastSupportDirectoryPathCreatingIfNeeded;
 
 +(NSString*)quantcastDataGeneratingDirectoryPath;
 +(NSString*)quantcastDataReadyToUploadDirectoryPath;
 +(NSString*)quantcastUploadInProgressDirectoryPath;
++ (BOOL)excludeBackupToItemAtPath:(NSString *)path;
 
 +(void)emptyAllQuantcastCaches;
 
@@ -86,4 +90,7 @@
 +(NSString*)stringFromObject:(id)inJSONObject defaultValue:(NSString*)inDefaultValue;
 
 +(NSDate*)appInstallTime;
++(NSString*)deviceIdentifier:(QuantcastPolicy*)inPolicy;
+
++(NSString*)hashDeviceID:(NSString*)inDeviceID withSalt:(NSString*)inSalt;
 @end
