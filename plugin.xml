@@ -29,16 +29,11 @@
     </config-file>
 
     <platform name="android">
-        <info>
-            You need to install **Google Play Services** from the `Android Extras` section using the Android SDK manager (run `android`).
-            
-            You need to add the following line to your `local.properties`
-            
-            android.library.reference.1=PATH_TO_ANDROID_SDK/sdk/extras/google/google_play_services/libproject/google-play-services_lib
-        </info>
-
+          <dependency id="com.google.playservices" url="https://github.com/floatinghotpot/google-play-services" commit="r19" />
+        
         <source-file src="src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
         
+        <!-- SDK Code -->
         <source-file src="src/android/sdk/QuantcastAndroidSdk.jar" target-dir="libs" />
         
         <config-file target="res/xml/config.xml" parent="/*">
@@ -48,21 +43,18 @@
         </config-file>
 
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
-	        <activity android:name="com.quantcast.measurement.service.AboutQuantcastScreen"/>
+            <activity android:name="com.quantcast.measurement.service.AboutQuantcastScreen"/>
             <receiver android:name="com.quantcast.measurement.service.QCReferrerReceiver" android:exported="true">
                 <intent-filter>
                     <action android:name="com.android.vending.INSTALL_REFERRER" />
                 </intent-filter>
              </receiver>
-            <meta-data android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
         </config-file>
-
 
         <config-file target="AndroidManifest.xml" parent="/manifest">
             <uses-permission android:name="android.permission.INTERNET" />
- 	        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
- 	        <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
         </config-file>
     </platform>
     <platform name="ios">
