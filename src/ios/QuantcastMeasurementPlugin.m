@@ -24,7 +24,7 @@
 #import "QuantcastMeasurementPlugin.h"
 #import "QuantcastMeasurement.h"
 
-NSString *const VersionLabel = @"_sdk.phonegap.ios.v114";
+NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
 
 @interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>
 
@@ -55,7 +55,7 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v114";
     self.labels = [self argumentAsLabel:[command.arguments objectAtIndex:2] appendingItem:VersionLabel];
     
     //always setup terminate notifications since phonegap doesnt have one
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(terminateNotification) name:UIApplicationWillTerminateNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(terminateNotification:) name:UIApplicationWillTerminateNotification object:nil];
     
     NSString* hash = [[QuantcastMeasurement sharedInstance] beginMeasurementSessionWithAPIKey:apiKey userIdentifier:userId labels:self.labels];
     
