@@ -14,16 +14,18 @@
 
 @interface QuantcastMeasurementPlugin : CDVPlugin
 
-- (void)beginMeasurementSession:(CDVInvokedUrlCommand*)command;
-- (void)endMeasurementSession:(CDVInvokedUrlCommand*)command;
-- (void)pauseMeasurementSession:(CDVInvokedUrlCommand*)command;
-- (void)resumeMeasurementSession:(CDVInvokedUrlCommand*)command;
+- (void)beginNetworkMeasurementSession:(CDVInvokedUrlCommand*)command;
+- (void)endNetworkMeasurementSession:(CDVInvokedUrlCommand*)command;
+- (void)pauseNetworkMeasurementSession:(CDVInvokedUrlCommand*)command;
+- (void)resumeNetworkMeasurementSession:(CDVInvokedUrlCommand*)command;
 - (void)logEvent:(CDVInvokedUrlCommand*)command;
+- (void)logNetworkEvent:(CDVInvokedUrlCommand*)command;
 - (void)recordUserIdentifier:(CDVInvokedUrlCommand*)command;
-- (void)setGeolocation:(CDVInvokedUrlCommand*)command;
 - (void)setOptOut:(CDVInvokedUrlCommand*)command;
 - (void)displayUserPrivacyDialog:(CDVInvokedUrlCommand*)command;
 - (void)setDebugLogging:(CDVInvokedUrlCommand*)command;
 - (void)uploadEventCount:(CDVInvokedUrlCommand*)command;
+
+
 
 @end

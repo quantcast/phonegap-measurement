@@ -4,10 +4,10 @@
     id="com.quantcast.phonegapplugin"
     version="1.1.0">
 
-    <name>Quantcast Measurement for Apps</name>
+    <name>Quantcast Network Measurement for Apps</name>
     
     <description>
-       Audience measurement and analytics for mobile applications.
+       Audience measurement and analytics for mobile applications for platforms and Networks
     </description>
 
     <author>Quantcast</author>
@@ -20,8 +20,8 @@
         <engine name="cordova" version=">=2.5.0" />
     </engines> 
 
-    <js-module src="www/QuantcastMeasurement.js" name="QuantcastMeasurementPlugin">
-        <clobbers target="window.QuantcastMeasurement" />
+    <js-module src="www/QuantcastNetworkMeasurement.js" name="QuantcastMeasurementPlugin">
+        <clobbers target="window.QuantcastNetworkMeasurement" />
     </js-module>
     
     <config-file target="config.xml" parent="/*">
@@ -84,6 +84,9 @@
         <source-file src="src/ios/sdk/QuantcastUploadManager.m"/>
         <header-file src="src/ios/sdk/QuantcastUtils.h" />
         <source-file src="src/ios/sdk/QuantcastUtils.m"/>
+        <source-file src="src/ios/sdk/Optional/QuantcastMeasurement+Networks.h"/>
+        <source-file src="src/ios/sdk/Optional/QuantcastMeasurement+Networks.m"/>
+        
 
 
 

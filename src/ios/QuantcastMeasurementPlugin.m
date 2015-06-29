@@ -23,14 +23,15 @@
 
 #import "QuantcastMeasurementPlugin.h"
 #import "QuantcastMeasurement.h"
+#import "QuantcastMeasurement+Networks.h"
 
 NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
 
 @interface QuantcastMeasurementPlugin ()<QuantcastOptOutDelegate>
 
 @property (nonatomic, copy) NSString* optOutDisplayCallbackID; //we have to hold this for the delegate callback
-@property (nonatomic, retain) id<NSObject> labels;
-
+@property (nonatomic, copy) id<NSObject> labels;
+@property (nonatomic, copy) id<NSObject> netLabels;
 @end
 
 
@@ -46,18 +47,21 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
 }
 
 
-- (void)beginMeasurementSession:(CDVInvokedUrlCommand*)command{
+- (void)beginNetworkMeasurementSession:(CDVInvokedUrlCommand*)command{
 
     NSString *callbackId = command.callbackId;
     
     NSString* apiKey = [self argumentAsString:[command.arguments objectAtIndex:0]];
-    NSString* userId = [self argumentAsString:[command.arguments objectAtIndex:1]];
-    self.labels = [self argumentAsLabel:[command.arguments objectAtIndex:2] appendingItem:VersionLabel];
+    NSString* networkCode = [self argumentAsString:[command.arguments objectAtIndex:1]];
+    NSString* userId = [self argumentAsString:[command.arguments objectAtIndex:2]];
+    self.labels = [self argumentAsLabel:[command.arguments objectAtIndex:3] appendingItem:VersionLabel];
+    self.netLabels = [self argumentAsLabel:[command.arguments objectAtIndex:4] appendingItem:VersionLabel];
+    BOOL directedAtChildren = [self argumentAsBool:[command.arguments objectAtIndex:5]];
     
     //always setup terminate notifications since phonegap doesnt have one
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(terminateNotification:) name:UIApplicationWillTerminateNotification object:nil];
     
-    NSString* hash = [[QuantcastMeasurement sharedInstance] beginMeasurementSessionWithAPIKey:apiKey userIdentifier:userId labels:self.labels];
+    NSString* hash = [[QuantcastMeasurement sharedInstance] beginMeasurementSessionWithAPIKey:apiKey attributedNetwork:networkCode userIdentifier:userId appLabels:self.labels networkLabels:self.netLabels appIsDirectedAtChildren:directedAtChildren];
     
     if(callbackId){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:hash];
@@ -67,22 +71,25 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
 }
 
 -(void)terminateNotification:(NSNotification*)notif{
-    [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:self.labels];
+    [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithAppLabels:self.labels networkLabels:self.netLabels];
 }
 
-- (void)endMeasurementSession:(CDVInvokedUrlCommand*)command{
+- (void)endNetworkMeasurementSession:(CDVInvokedUrlCommand*)command{
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0]];
-    [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithLabels:labels];
+    id<NSObject> netLabels = [self argumentAsLabel:[command.arguments objectAtIndex:1]];
+    [[QuantcastMeasurement sharedInstance] endMeasurementSessionWithAppLabels:labels networkLabels:self.netLabels];
 }
 
-- (void)pauseMeasurementSession:(CDVInvokedUrlCommand*)command{    
+- (void)pauseNetworkMeasurementSession:(CDVInvokedUrlCommand*)command{
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0]];
-    [[QuantcastMeasurement sharedInstance] pauseSessionWithLabels:labels];
+    id<NSObject> netLabels = [self argumentAsLabel:[command.arguments objectAtIndex:1]];
+    [[QuantcastMeasurement sharedInstance] pauseSessionWithAppLabels:labels networkLabels:netLabels];
 }
 
-- (void)resumeMeasurementSession:(CDVInvokedUrlCommand*)command{
+- (void)resumeNetworkMeasurementSession:(CDVInvokedUrlCommand*)command{
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:0] appendingItem:VersionLabel];
-    [[QuantcastMeasurement sharedInstance] resumeSessionWithLabels:labels];
+    id<NSObject> netLabels = [self argumentAsLabel:[command.arguments objectAtIndex:1]];
+    [[QuantcastMeasurement sharedInstance] resumeSessionWithAppLabels:labels networkLabels:netLabels];
 }
 
 - (void)recordUserIdentifier:(CDVInvokedUrlCommand*)command{
@@ -90,8 +97,9 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
     
     NSString* userId = [self argumentAsString:[command.arguments objectAtIndex:0]];
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:1]];
+    id<NSObject> netLabels = [self argumentAsLabel:[command.arguments objectAtIndex:2]];
     
-    NSString* hash = [[QuantcastMeasurement sharedInstance] recordUserIdentifier:userId withLabels:labels];
+    NSString* hash = [[QuantcastMeasurement sharedInstance] recordUserIdentifier:userId withAppLabels:labels networkLabels:netLabels];
     
     if(callbackId){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:hash];
@@ -104,13 +112,14 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
     NSString* event = [self argumentAsString:[command.arguments objectAtIndex:0]];
     id<NSObject> labels = [self argumentAsLabel:[command.arguments objectAtIndex:1]];
     
-    [[QuantcastMeasurement sharedInstance] logEvent:event withLabels:labels];
+    [[QuantcastMeasurement sharedInstance] logEvent:event withAppLabels:labels];
 }
 
-- (void)setGeolocation:(CDVInvokedUrlCommand*)command{
+- (void)logNetworkEvent:(CDVInvokedUrlCommand*)command{
+    NSString* event = [self argumentAsString:[command.arguments objectAtIndex:0]];
+    id<NSObject> netLabels = [self argumentAsLabel:[command.arguments objectAtIndex:1]];
     
-    BOOL locateEnabled = [self argumentAsBool:[command.arguments objectAtIndex:0]];
-    [QuantcastMeasurement sharedInstance].geoLocationEnabled = locateEnabled;
+    [[QuantcastMeasurement sharedInstance] logNetworkEvent:event withNetworkLabels:netLabels];
 }
 
 - (void)setOptOut:(CDVInvokedUrlCommand*)command{
