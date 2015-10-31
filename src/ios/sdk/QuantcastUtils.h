@@ -31,14 +31,21 @@
 
 @class QuantcastPolicy;
 
+@interface QCSyncronizedRequest : NSObject
+- (NSData *)sendSynchronousRequest:(NSURLRequest *)request returningResponse:(NSURLResponse **)response error:(NSError **)error;
+
+@end
+
 @interface QuantcastUtils : NSObject
 
-+(NSString*)quantcastCacheDirectoryPath;
-+(NSString*)quantcastCacheDirectoryPathCreatingIfNeeded;
++(NSString*)quantcastDeprecatedCacheDirectoryPath;
++(NSString*)quantcastSupportDirectoryPath;
++(NSString*)quantcastSupportDirectoryPathCreatingIfNeeded;
 
 +(NSString*)quantcastDataGeneratingDirectoryPath;
 +(NSString*)quantcastDataReadyToUploadDirectoryPath;
 +(NSString*)quantcastUploadInProgressDirectoryPath;
++ (BOOL)excludeBackupToItemAtPath:(NSString *)path;
 
 +(void)emptyAllQuantcastCaches;
 
@@ -77,6 +84,7 @@
  */
 +(NSString*)encodeLabelsList:(NSArray*)inLabelsArrayOrNil;
 
++(NSArray*)copyLabels:(id<NSObject>)inLabelsObjectOrNil;
 +(id<NSObject>)combineLabels:(id<NSObject>)labels1 withLabels:(id<NSObject>)labels2;
 +(NSString*)urlEncodeString:(NSString*)inString;
 

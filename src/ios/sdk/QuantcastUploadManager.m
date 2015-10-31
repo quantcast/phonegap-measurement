@@ -173,9 +173,9 @@
     NSTimeInterval startTime = NSDate.timeIntervalSinceReferenceDate;
     NSHTTPURLResponse* __autoreleasing uploadResponse = nil;
     NSError* __autoreleasing uploadError = nil;
-    [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&uploadResponse error:&uploadError];
+    [[QCSyncronizedRequest new] sendSynchronousRequest:urlRequest returningResponse:&uploadResponse error:&uploadError];
     
-    if( nil != uploadError){
+    if( nil != uploadError && uploadError.code != NSURLErrorNotConnectedToInternet){
         [[QuantcastMeasurement sharedInstance] logSDKError:QC_SDKERRORTYPE_UPLOADFAILURE
                                                  withError:uploadError
                                             errorParameter:uploadID];

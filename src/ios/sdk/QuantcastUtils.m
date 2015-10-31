@@ -21,7 +21,7 @@
 #import "QuantcastPolicy.h"
 
 #ifndef QCMEASUREMENT_USE_SECURE_CONNECTIONS
-#define QCMEASUREMENT_USE_SECURE_CONNECTIONS 0
+#define QCMEASUREMENT_USE_SECURE_CONNECTIONS 1
 #endif
 
 static BOOL _enableLogging = NO;
@@ -43,36 +43,72 @@ static BOOL _enableLogging = NO;
 
 @implementation QuantcastUtils
 
-+(NSString*)quantcastCacheDirectoryPath {
++(NSString*)quantcastDeprecatedCacheDirectoryPath {
     NSArray* cachePaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     
     if ( [cachePaths count] > 0 ) {
         
         NSString* cacheDir = [cachePaths objectAtIndex:0];
         
-        NSString* qcCachePath = [cacheDir stringByAppendingPathComponent:QCMEASUREMENT_CACHE_DIRNAME];
+        NSString* qcCachePath = [cacheDir stringByAppendingPathComponent:QCMEASUREMENT_DEPRECATED_CACHE_DIRNAME];
         
         return qcCachePath;
+    }
+    
+    return nil;
+}
+
++(NSString*)quantcastSupportDirectoryPath {
+    NSArray* supportPaths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+    
+    if ( [supportPaths count] > 0 ) {
+        
+        NSString* supportDir = [supportPaths objectAtIndex:0];
+        
+        NSString* qcSupportPath = [supportDir stringByAppendingPathComponent:QCMEASUREMENT_SUPPORT_DIRNAME];
+        
+        return qcSupportPath;
     }
 
     return nil;
 }
 
-+(NSString*)quantcastCacheDirectoryPathCreatingIfNeeded {
-    NSString* cacheDir = [QuantcastUtils quantcastCacheDirectoryPath];
++(NSString*)quantcastSupportDirectoryPathCreatingIfNeeded {
+    NSString* cacheDir = [QuantcastUtils quantcastSupportDirectoryPath];
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:cacheDir]) {
         if (![[NSFileManager defaultManager] createDirectoryAtPath:cacheDir withIntermediateDirectories:YES attributes:nil error:nil]){
             QUANTCAST_LOG(@"Unable to create cache directory = %@", cacheDir );
             return nil;
         }
+        
+        [QuantcastUtils excludeBackupToItemAtPath:cacheDir];
     }
     
     return cacheDir;
 }
 
++ (BOOL)excludeBackupToItemAtPath:(NSString *)path
+{
+    BOOL success = NO;
+    //In iOS 5.1+, make sure this isn't backed up to the cloud
+    BOOL supportsBackup = YES;
+    #if __IPHONE_OS_VERSION_MIN_REQUIRED <= __IPHONE_5_0
+        supportsBackup = &NSURLIsExcludedFromBackupKey != NULL;
+    #endif
+    if (supportsBackup && [[NSFileManager defaultManager] fileExistsAtPath:path]) {
+        NSError *error = nil;
+        success = [[NSURL fileURLWithPath:path] setResourceValue: [NSNumber numberWithBool: YES]
+                                  forKey: NSURLIsExcludedFromBackupKey error: &error];
+        if(!success){
+            QUANTCAST_LOG(@"Error excluding %@ from backup %@", path, error);
+        }
+    }
+    return success;
+}
+
 +(NSString*)quantcastDataGeneratingDirectoryPath {
-    NSString*  cacheDir = [QuantcastUtils quantcastCacheDirectoryPath];
+    NSString*  cacheDir = [QuantcastUtils quantcastSupportDirectoryPath];
     
     cacheDir = [cacheDir stringByAppendingPathComponent:@"generating"];   
     
@@ -89,7 +125,7 @@ static BOOL _enableLogging = NO;
 }
 
 +(NSString*)quantcastDataReadyToUploadDirectoryPath {
-    NSString*  cacheDir = [QuantcastUtils quantcastCacheDirectoryPath];
+    NSString*  cacheDir = [QuantcastUtils quantcastSupportDirectoryPath];
     
     cacheDir =  [cacheDir stringByAppendingPathComponent:@"ready"];
     // determine if directory exists. If it doesn't create it.
@@ -104,7 +140,7 @@ static BOOL _enableLogging = NO;
     return cacheDir;
 }
 +(NSString*)quantcastUploadInProgressDirectoryPath {
-    NSString*  cacheDir = [QuantcastUtils quantcastCacheDirectoryPath];
+    NSString*  cacheDir = [QuantcastUtils quantcastSupportDirectoryPath];
     
     cacheDir = [cacheDir stringByAppendingPathComponent:@"uploading"];
     // determine if directory exists. If it doesn't create it.
@@ -122,7 +158,7 @@ static BOOL _enableLogging = NO;
 +(void)emptyAllQuantcastCaches {
     NSFileManager* fileManager = [NSFileManager defaultManager];    
     
-    NSString* cacheDir = [QuantcastUtils quantcastCacheDirectoryPath];
+    NSString* cacheDir = [QuantcastUtils quantcastSupportDirectoryPath];
     
     NSError* __autoreleasing dirError = nil;
     NSArray* dirContents = [fileManager contentsOfDirectoryAtPath:cacheDir error:&dirError];
@@ -135,14 +171,14 @@ static BOOL _enableLogging = NO;
             if ( ![filesToKeepSet containsObject:filename] ) {
                 NSError* __autoreleasing error = nil;
                 
-                [fileManager removeItemAtPath:[[QuantcastUtils quantcastCacheDirectoryPath] stringByAppendingPathComponent:filename] error:&error];
+                [fileManager removeItemAtPath:[cacheDir stringByAppendingPathComponent:filename] error:&error];
                 if (nil != error) {
                     QUANTCAST_LOG(@"Unable to delete Quantcast Cache directory! error = %@", error);
                 }
 
             }
         }
-    } 
+    }
 }
 
 +(int64_t)qhash2:(const int64_t)inKey string:(NSString*)inString {
@@ -439,6 +475,21 @@ static BOOL _enableLogging = NO;
     return [set allObjects];
 }
 
++(NSArray*)copyLabels:(id<NSObject>)inLabelsObjectOrNil{
+    NSArray* retval = nil;
+    if ( nil != inLabelsObjectOrNil ) {
+        if ( [inLabelsObjectOrNil isKindOfClass:[NSString class]] ) {
+            retval = @[(NSString*)inLabelsObjectOrNil];
+        }
+        else if ( [inLabelsObjectOrNil isKindOfClass:[NSArray class]] ) {
+            retval = [((NSArray*)inLabelsObjectOrNil) copy];
+        }
+        else {
+            QUANTCAST_ERROR(@"An incorrect object type was passed as a label The object p.assed was: %@",inLabelsObjectOrNil);
+        }
+    }
+    return retval;
+}
 
 +(NSString*)encodeLabelsList:(NSArray*)inLabelsArrayOrNil {
     if ( nil == inLabelsArrayOrNil ) {
@@ -568,3 +619,70 @@ static BOOL _enableLogging = NO;
 }
 
 @end
+
+@interface QCSyncronizedRequest ()<NSURLConnectionDataDelegate>{
+    NSURLConnection* m_connection;
+    CFRunLoopRef m_runLoop;
+    BOOL m_isRunning;
+    NSURLResponse* m_response;
+    NSMutableData* m_data;
+    NSError* m_error;
+}
+
+@end
+
+@implementation QCSyncronizedRequest
+
+-(NSData *)sendSynchronousRequest:(NSURLRequest *)request returningResponse:(NSURLResponse **)response error:(NSError **)error
+{
+    m_isRunning=YES;
+    m_data = [NSMutableData new];
+    
+    m_connection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [m_connection start];
+    CFRunLoopRun();
+    
+    *error = [m_error copy];
+    *response = [m_response copy];
+    
+    return m_data;
+}
+
+- (void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge{
+    [QuantcastUtils handleConnection:connection didReceiveAuthenticationChallenge:challenge withTrustedHost:[connection.originalRequest.URL host]];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
+{
+    m_response = response;
+    
+    NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse *)response;
+    NSInteger statusCode = httpResponse.statusCode;
+    
+    if(statusCode < 400){
+        //just to check against rogue expected lengths lets set a min and max
+        NSUInteger maxCapacity = MAX((NSUInteger)llabs(httpResponse.expectedContentLength), 1024);
+        NSUInteger capacity = MIN(maxCapacity, 1024*1024);
+        m_data = [[NSMutableData alloc] initWithCapacity:capacity];
+    }
+
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    [m_data appendData:data];
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    m_error=error;
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+@end
+
