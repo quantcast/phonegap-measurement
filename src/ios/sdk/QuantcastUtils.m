@@ -21,7 +21,7 @@
 #import "QuantcastPolicy.h"
 
 #ifndef QCMEASUREMENT_USE_SECURE_CONNECTIONS
-#define QCMEASUREMENT_USE_SECURE_CONNECTIONS 0
+#define QCMEASUREMENT_USE_SECURE_CONNECTIONS 1
 #endif
 
 static BOOL _enableLogging = NO;
@@ -92,7 +92,11 @@ static BOOL _enableLogging = NO;
 {
     BOOL success = NO;
     //In iOS 5.1+, make sure this isn't backed up to the cloud
-    if (&NSURLIsExcludedFromBackupKey != NULL && [[NSFileManager defaultManager] fileExistsAtPath:path]) {
+    BOOL supportsBackup = YES;
+    #if __IPHONE_OS_VERSION_MIN_REQUIRED <= __IPHONE_5_0
+        supportsBackup = &NSURLIsExcludedFromBackupKey != NULL;
+    #endif
+    if (supportsBackup && [[NSFileManager defaultManager] fileExistsAtPath:path]) {
         NSError *error = nil;
         success = [[NSURL fileURLWithPath:path] setResourceValue: [NSNumber numberWithBool: YES]
                                   forKey: NSURLIsExcludedFromBackupKey error: &error];
@@ -471,6 +475,21 @@ static BOOL _enableLogging = NO;
     return [set allObjects];
 }
 
++(NSArray*)copyLabels:(id<NSObject>)inLabelsObjectOrNil{
+    NSArray* retval = nil;
+    if ( nil != inLabelsObjectOrNil ) {
+        if ( [inLabelsObjectOrNil isKindOfClass:[NSString class]] ) {
+            retval = @[(NSString*)inLabelsObjectOrNil];
+        }
+        else if ( [inLabelsObjectOrNil isKindOfClass:[NSArray class]] ) {
+            retval = [((NSArray*)inLabelsObjectOrNil) copy];
+        }
+        else {
+            QUANTCAST_ERROR(@"An incorrect object type was passed as a label The object p.assed was: %@",inLabelsObjectOrNil);
+        }
+    }
+    return retval;
+}
 
 +(NSString*)encodeLabelsList:(NSArray*)inLabelsArrayOrNil {
     if ( nil == inLabelsArrayOrNil ) {
@@ -600,3 +619,70 @@ static BOOL _enableLogging = NO;
 }
 
 @end
+
+@interface QCSyncronizedRequest ()<NSURLConnectionDataDelegate>{
+    NSURLConnection* m_connection;
+    CFRunLoopRef m_runLoop;
+    BOOL m_isRunning;
+    NSURLResponse* m_response;
+    NSMutableData* m_data;
+    NSError* m_error;
+}
+
+@end
+
+@implementation QCSyncronizedRequest
+
+-(NSData *)sendSynchronousRequest:(NSURLRequest *)request returningResponse:(NSURLResponse **)response error:(NSError **)error
+{
+    m_isRunning=YES;
+    m_data = [NSMutableData new];
+    
+    m_connection = [NSURLConnection connectionWithRequest:request delegate:self];
+    [m_connection start];
+    CFRunLoopRun();
+    
+    *error = [m_error copy];
+    *response = [m_response copy];
+    
+    return m_data;
+}
+
+- (void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge{
+    [QuantcastUtils handleConnection:connection didReceiveAuthenticationChallenge:challenge withTrustedHost:[connection.originalRequest.URL host]];
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
+{
+    m_response = response;
+    
+    NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse *)response;
+    NSInteger statusCode = httpResponse.statusCode;
+    
+    if(statusCode < 400){
+        //just to check against rogue expected lengths lets set a min and max
+        NSUInteger maxCapacity = MAX((NSUInteger)llabs(httpResponse.expectedContentLength), 1024);
+        NSUInteger capacity = MIN(maxCapacity, 1024*1024);
+        m_data = [[NSMutableData alloc] initWithCapacity:capacity];
+    }
+
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
+{
+    [m_data appendData:data];
+}
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    m_error=error;
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
+@end
+

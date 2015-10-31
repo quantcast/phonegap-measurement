@@ -14,6 +14,7 @@
 #endif // !__has_feature(objc_arc)
 
 #import <CoreTelephony/CTCarrier.h>
+#import <UIKit/UIKit.h>
 #import "QuantcastPolicy.h"
 #import "QuantcastParameters.h"
 #import "QuantcastUtils.h"
@@ -286,7 +287,7 @@
 
         NSHTTPURLResponse* __autoreleasing policyResponse = nil;
         NSError* __autoreleasing policyError = nil;
-        NSData* policyData = [NSURLConnection sendSynchronousRequest:request returningResponse:&policyResponse error:&policyError];
+        NSData* policyData = [[QCSyncronizedRequest new] sendSynchronousRequest:request returningResponse:&policyResponse error:&policyError];
         if( nil != policyError){
             [self connectionDidFail:policyError];
             
@@ -418,7 +419,7 @@
         
     }
     
-    NSURL* policyURL =  [QuantcastUtils updateSchemeForURL:[NSURL URLWithString:policyURLStr]];
+    NSURL* policyURL = [QuantcastUtils updateSchemeForURL:[NSURL URLWithString:policyURLStr]];
     
     return policyURL;
 }

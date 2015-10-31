@@ -30,9 +30,6 @@
 #import "QuantcastGeoManager.h"
 #endif
 
-QuantcastMeasurement* gSharedInstance = nil;
-
-
 @interface QuantcastMeasurement () <QuantcastNetworkReachability> {
     NSOperationQueue* _quantcastQueue;
     UIBackgroundTaskIdentifier _backgroundTaskID;
@@ -96,6 +93,7 @@ QuantcastMeasurement* gSharedInstance = nil;
 
 +(QuantcastMeasurement*)sharedInstance {
     static dispatch_once_t pred;
+    static QuantcastMeasurement* gSharedInstance = nil;
     dispatch_once(&pred, ^{
         gSharedInstance = [[QuantcastMeasurement alloc] init];
     });
@@ -476,7 +474,6 @@ QuantcastMeasurement* gSharedInstance = nil;
             [labels addObject:inLabelsOrNil];
         }
 
-        [self addInternalSDKAppLabels:@[@"_sdk.ios.setup"] networkLabels:nil];
         self.appLabels = [QuantcastUtils combineLabels:self.appLabels withLabels:labels];
         
         userhash = [self internalBeginSessionWithAPIKey:inQuantcastAPIKey attributedNetwork:nil userIdentifier:userIdentifierOrNil appLabels:nil networkLabels:nil appIsDeclaredDirectedAtChildren:NO];
@@ -653,6 +650,10 @@ QuantcastMeasurement* gSharedInstance = nil;
     _appIsDeclaredDirectedAtChildren = inAppIsDirectedAtChildren;
     
     if ( !self.isOptedOut ) {
+        //copy the incoming labels.  This prevents the client from changing the original object from underneath us.
+        NSArray* appLabelCopy = [QuantcastUtils copyLabels:inAppLabelsOrNil];
+        NSArray* networkLabelCopy = [QuantcastUtils copyLabels:inNetworkLabelsOrNil];
+        
         [self launchOnQuantcastThread:^(NSDate *timestamp) {
             if ( !self.isMeasurementActive ) {
                 if(nil != hashedId){
@@ -660,7 +661,10 @@ QuantcastMeasurement* gSharedInstance = nil;
                 }
     #ifdef __IPHONE_7_0
                 if ( nil != _telephoneInfo ){
-                    BOOL radioNotificationExists = (&CTRadioAccessTechnologyDidChangeNotification != NULL);
+                    BOOL radioNotificationExists = YES;
+                    #if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0
+                        radioNotificationExists = &CTRadioAccessTechnologyDidChangeNotification != NULL;
+                    #endif
                     if( [_telephoneInfo respondsToSelector:@selector(currentRadioAccessTechnology)] && radioNotificationExists ){
                         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(radioAccessChanged:) name:CTRadioAccessTechnologyDidChangeNotification object:nil];
                     }
@@ -693,9 +697,9 @@ QuantcastMeasurement* gSharedInstance = nil;
                 [self enableDataUploading];
                 
                 if([self checkSessionID]){
-                    [self startNewSessionAndGenerateEventWithReason:QCPARAMETER_REASONTYPE_LAUNCH withAppLabels:inAppLabelsOrNil networkLabels:inNetworkLabelsOrNil eventTimestamp:(NSDate *)timestamp];
+                    [self startNewSessionAndGenerateEventWithReason:QCPARAMETER_REASONTYPE_LAUNCH withAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] networkLabels:networkLabelCopy eventTimestamp:(NSDate *)timestamp];
                 }else{
-                    QuantcastEvent* e = [QuantcastEvent resumeSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:inAppLabelsOrNil] eventNetworkLabels:inNetworkLabelsOrNil];
+                    QuantcastEvent* e = [QuantcastEvent resumeSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] eventNetworkLabels:networkLabelCopy];
                     
                     [self recordEvent:e];
                 }
@@ -708,11 +712,14 @@ QuantcastMeasurement* gSharedInstance = nil;
     return hashedId;
 }
 
--(void)internalEndMeasurementSessionWithAppLabels:(id<NSObject>)inAppLabelsOrNil networkLabels:(id<NSObject>)inNetworkLabels {
+-(void)internalEndMeasurementSessionWithAppLabels:(id<NSObject>)inAppLabelsOrNil networkLabels:(id<NSObject>)inNetworkLabelsOrNil {
     if ( !self.isOptedOut  ) {
+        //copy the incoming labels.  This prevents the client from changing the original object from underneath us.
+        NSArray* appLabelCopy = [QuantcastUtils copyLabels:inAppLabelsOrNil];
+        NSArray* networkLabelCopy = [QuantcastUtils copyLabels:inNetworkLabelsOrNil];
         [self launchOnQuantcastThread:^(NSDate *timestamp) {
             if ( self.isMeasurementActive ) {
-                QuantcastEvent* e = [QuantcastEvent closeSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:inAppLabelsOrNil] eventNetworkLabels:inNetworkLabels];
+                QuantcastEvent* e = [QuantcastEvent closeSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] eventNetworkLabels:networkLabelCopy];
                 
                 [self recordEvent:e withUpload:YES];
                 [self updateSessionTimestamp];
@@ -737,12 +744,15 @@ QuantcastMeasurement* gSharedInstance = nil;
     }
 }
 
--(void)internalPauseSessionWithAppLabels:(id<NSObject>)inAppLabelsOrNil networkLabels:(id<NSObject>)inNetworkLabels {
+-(void)internalPauseSessionWithAppLabels:(id<NSObject>)inAppLabelsOrNil networkLabels:(id<NSObject>)inNetworkLabelsOrNil {
     
     if ( !self.isOptedOut ) {
+        //copy the incoming labels.  This prevents the client from changing the original object from underneath us.
+        NSArray* appLabelCopy = [QuantcastUtils copyLabels:inAppLabelsOrNil];
+        NSArray* networkLabelCopy = [QuantcastUtils copyLabels:inNetworkLabelsOrNil];
         [self launchOnQuantcastThread:^(NSDate *timestamp) {
             if ( self.isMeasurementActive ) {
-                QuantcastEvent* e = [QuantcastEvent pauseSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:inAppLabelsOrNil] eventNetworkLabels:inNetworkLabels];
+                QuantcastEvent* e = [QuantcastEvent pauseSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] eventNetworkLabels:networkLabelCopy];
                 
                 
                 [self recordEvent:e withUpload:NO];
@@ -764,22 +774,25 @@ QuantcastMeasurement* gSharedInstance = nil;
     }
 }
 
--(void)internalResumeSessionWithAppLabels:(id<NSObject>)inAppLabelsOrNil networkLabels:(id<NSObject>)inNetworkLabels {
+-(void)internalResumeSessionWithAppLabels:(id<NSObject>)inAppLabelsOrNil networkLabels:(id<NSObject>)inNetworkLabelsOrNil {
     [self setOptOutStatus:[QuantcastMeasurement isOptedOutStatus]];
     
     if ( !self.isOptedOut ) {
+        //copy the incoming labels.  This prevents the client from changing the original object from underneath us.
+        NSArray* appLabelCopy = [QuantcastUtils copyLabels:inAppLabelsOrNil];
+        NSArray* networkLabelCopy = [QuantcastUtils copyLabels:inNetworkLabelsOrNil];
         [self launchOnQuantcastThread:^(NSDate *timestamp) {
             if ( self.isMeasurementActive ) {
-                QuantcastEvent* e = [QuantcastEvent resumeSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:inAppLabelsOrNil] eventNetworkLabels:inNetworkLabels];
+                QuantcastEvent* e = [QuantcastEvent resumeSessionEventWithSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier eventAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] eventNetworkLabels:networkLabelCopy];
                 
                 [self recordEvent:e];
                 
                 [self startReachabilityNotifier];
                 
-                if (![self startNewSessionIfUsersAdPrefChangedWithAppLabels:inAppLabelsOrNil networkLabels:inNetworkLabels eventTimestamp:timestamp]) {
+                if (![self startNewSessionIfUsersAdPrefChangedWithAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] networkLabels:networkLabelCopy eventTimestamp:timestamp]) {
                     if ( [self checkSessionID] ) {
                         [_policy downloadLatestPolicyWithReachability:self];
-                        [self startNewSessionAndGenerateEventWithReason:QCPARAMETER_REASONTYPE_RESUME withAppLabels:inAppLabelsOrNil networkLabels:inNetworkLabels eventTimestamp:timestamp];
+                        [self startNewSessionAndGenerateEventWithReason:QCPARAMETER_REASONTYPE_RESUME withAppLabels:[QuantcastUtils combineLabels:self.appLabels withLabels:appLabelCopy] networkLabels:networkLabelCopy eventTimestamp:timestamp];
                        QUANTCAST_LOG(@"Starting new session after app being paused for extend period of time.");
                     }
                 }
@@ -1305,8 +1318,8 @@ static void QuantcastReachabilityCallback(SCNetworkReachabilityRef target, SCNet
         [self launchOnQuantcastThread:^(NSDate *timestamp) {
             if( self.isMeasurementActive ){
                 QuantcastEvent* e = [QuantcastEvent logSDKError:inSDKErrorType withErrorObject:inErrorOrNil errorParameter:inErrorParametOrNil withSessionID:self.currentSessionID eventTimestamp:timestamp applicationInstallID:self.appInstallIdentifier];
-                
-                [self recordEvent:e];
+                //dont try to upload event immediately.  This should prevent the same error from being triggered over and over
+                [self recordEvent:e withUpload:NO];
             }
         }];
     }
