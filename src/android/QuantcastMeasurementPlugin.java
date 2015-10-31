@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 public class QuantcastMeasurementPlugin extends CordovaPlugin {
 
-    private static final String VERSION_LABEL = "_sdk.phonegap.android.v115";
+    private static final String VERSION_LABEL = "_sdk.phonegap.android.v114";
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         boolean retval = true;
@@ -39,7 +39,7 @@ public class QuantcastMeasurementPlugin extends CordovaPlugin {
         } else if (action.equals("setGeolocation")) {
             QuantcastClient.setEnableLocationGathering(args.getBoolean(0));
         } else if (action.equals("setOptOut")) {
-            QuantcastClient.setOptOut(cordova.getActivity(), args.getBoolean(0));
+            QuantcastClient.setCollectionEnabled(args.getBoolean(0));
         } else if (action.equals("setDebugLogging")) {
             boolean logOn = args.getBoolean(0);
             QuantcastClient.enableLogging(logOn);
