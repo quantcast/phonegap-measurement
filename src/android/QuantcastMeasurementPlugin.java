@@ -37,7 +37,7 @@ public class QuantcastMeasurementPlugin extends CordovaPlugin {
         } else if (action.equals("logEvent")) {
             QuantcastClient.logEvent(args.getString(0), this.getLabels(args.get(1)));
         } else if (action.equals("setGeolocation")) {
-            QuantcastClient.setEnableLocationGathering(args.getBoolean(0));
+    
         } else if (action.equals("setOptOut")) {
             QuantcastClient.setOptOut(cordova.getActivity(), args.getBoolean(0));
         } else if (action.equals("setDebugLogging")) {
