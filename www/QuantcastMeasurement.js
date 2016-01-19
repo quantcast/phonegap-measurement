@@ -117,6 +117,7 @@ var QuantcastMeasurement = {
     /**
      By default, geo-location logging is off (false). If you wish for Quantcast to provide measurement services pertaining to the user's geo-location, you should enable (set to true) this property shortly after starting a measurement session. In order to protect user privacy, Quantcast will not log locations any more granular than "city", and will not log device location while your app is in the background. NOTE - Geolocation measurment is only supported on iOS 5 or later. Attempting to set this property to true on a device running iOS 4.x will have no affect. You do not have to set this property to false in order to pause geo-location tracking when the app goes into the background, as this is done automatically by the API.
       @param {boolean} geolocate true if events should send geolocation data
+      @deprecated Removing Geolocation feature on phonegap to avoid additional permissions.  This method will do nothing 
      */
     setGeoLocation: function (geolocate) {
         var cordovaRef = window.PhoneGap || window.Cordova || window.cordova; 
