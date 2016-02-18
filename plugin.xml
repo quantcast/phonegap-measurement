@@ -17,19 +17,14 @@
     <license>Quantcast Mobile App Measurement TOS</license>
     
     <engines>
-        <engine name="cordova" version=">=2.5.0" />
+        <engine name="cordova" version=">=3.0.0" />
     </engines> 
 
-    <js-module src="www/QuantcastMeasurement.js" name="QuantcastMeasurementPlugin">
-        <clobbers target="window.QuantcastMeasurement" />
-    </js-module>
-    
-    <config-file target="config.xml" parent="/*">
-        <access origin="m.quantcount.com" />
-    </config-file>
-
     <platform name="android">
-        <dependency id="com.google.playservices" url="https://github.com/floatinghotpot/google-play-services" commit="r19" />
+        <js-module src="www/QuantcastMeasurement.js" name="QuantcastMeasurementPlugin">
+            <clobbers target="window.QuantcastMeasurement" />
+        </js-module>
+        <dependency id="cordova-plugin-googleplayservices" url="https://github.com/floatinghotpot/google-play-services" commit="r19" />
         
         <source-file src="src/android/QuantcastMeasurementPlugin.java" target-dir="src/com/quantcast/phonegapplugin" />
         
@@ -55,9 +50,15 @@
             <uses-permission android:name="android.permission.INTERNET" />
  	        <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
         </config-file>
+        <config-file target="config.xml" parent="/*">
+            <access origin="m.quantcount.com" />
+        </config-file>
 
     </platform>
     <platform name="ios">
+        <js-module src="www/QuantcastMeasurement.js" name="QuantcastMeasurementPlugin">
+            <clobbers target="window.QuantcastMeasurement" />
+        </js-module>
         <source-file src="src/ios/QuantcastMeasurementPlugin.m" compiler-flags="-fno-objc-arc"/>
         <header-file src="src/ios/QuantcastMeasurementPlugin.h" />
         
@@ -91,6 +92,7 @@
             <feature name="QuantcastMeasurementPlugin">
                 <param name="ios-package" value="QuantcastMeasurementPlugin" />
             </feature>
+            <access origin="m.quantcount.com" />
         </config-file>
    
         <framework src="libsqlite3.dylib" />

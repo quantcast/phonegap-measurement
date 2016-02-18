@@ -61,7 +61,7 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
     
     if(callbackId){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:hash];
-        [self writeJavascript:[result toSuccessCallbackString:callbackId]];
+        [self.commandDelegate sendPluginResult:result callbackId:callbackId];
     }
     
 }
@@ -95,7 +95,7 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
     
     if(callbackId){
         CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:hash];
-        [self writeJavascript:[result toSuccessCallbackString:callbackId]];
+        [self.commandDelegate sendPluginResult:result callbackId:callbackId];
     }
     
 }
@@ -148,7 +148,7 @@ NSString *const VersionLabel = @"_sdk.phonegap.ios.v115";
 
 -(void)notifyOptOut:(NSNumber*)optChange{
     CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[optChange boolValue]];
-    [self writeJavascript:[result toSuccessCallbackString:self.optOutDisplayCallbackID]];
+    [self.commandDelegate sendPluginResult:result callbackId:self.optOutDisplayCallbackID];
     self.optOutDisplayCallbackID = nil;
 }
 
